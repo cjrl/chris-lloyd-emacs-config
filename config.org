@@ -158,7 +158,6 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 #+end_src
 
 #+RESULTS:
-: t
 
 *** Evil
 #+begin_src emacs-lisp
@@ -171,7 +170,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
   (use-package evil-smartparens)
 
-  (use-package evil-magit)
+  ;; (use-package evil-magit)
 
   (use-package evil-org
       :ensure t
@@ -209,52 +208,53 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Surrounds
 #+BEGIN_SRC emacs-lisp
-  (use-package smartparens-config
-	     :ensure smartparens
-	     :config
-	     (setq sp-max-pair-length 20)
-	     (sp-pair "\\left\\langle" "\\right\\rangle")
-	     (sp-pair "\\left(" "\\right)")
-	     (sp-pair "\\left\\{" "\\right\\}")
-	     (sp-pair "|" "|")
-	     (sp-pair "\\left|" "\\right|")
-	     (sp-pair "\\left\\langle" "\\right\\rangle")
-	     (sp-pair "\\left\\lceil" "\\right\\rceil")
-	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
-	     (smartparens-global-mode 1))
+    (use-package smartparens-config
+	       :ensure smartparens
+	       :config
+	       (setq sp-max-pair-length 20)
+	       (sp-pair "\\left\\langle" "\\right\\rangle")
+	       (sp-pair "\\left(" "\\right)")
+	       (sp-pair "\\left\\{" "\\right\\}")
+	       (sp-pair "|" "|")
+	       (sp-pair "\\left|" "\\right|")
+	       (sp-pair "\\left\\langle" "\\right\\rangle")
+	       (sp-pair "\\left\\lceil" "\\right\\rceil")
+	       (sp-pair "\\left\\lfloor" "\\right\\rfloor")
+	       (smartparens-global-mode 1))
 
-  (use-package evil-surround
-    :ensure t
-    :config
-    (global-evil-surround-mode 1)
-  (evil-add-to-alist
-   'evil-surround-pairs-alist
-   ?\( '("(" . ")")
-   ?\[ '("[" . "]")
-   ?\{ '("{" . "}")
-   ?\) '("( " . " )")
-   ?\] '("[ " . " ]")
-   ?\} '("{ " . " }")))
+    (use-package evil-surround
+      :ensure t
+      :config
+      (global-evil-surround-mode 1)
+	;; (evil-add-to-alist
+	;; 'evil-surround-pairs-alist
+	;; ?\( '("(" . ")")
+	;; ?\[ '("[" . "]")
+	;; ?\{ '("{" . "}")
+	;; ?\) '("( " . " )")
+	;; ?\] '("[ " . " ]")
+	;; ?\} '("{ " . " }"))
+  )
 
-  (use-package embrace
-   :ensure t
-   :config
-   (add-hook 'LaTeX-mode-hook (lambda ()
-     (embrace-add-pair ?e "\\begin{" "}")
-     (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
-     (embrace-add-pair ?m "\\(" "\\)")
-     (embrace-add-pair ?M "\\[" "\\]")
-     (embrace-add-pair ?l "\\left\(" "\\right\)")
-     (defun embrace-with-command ()
-     (let ((fname (read-string "Command: ")))
-       (cons (format "\\%s{" (or fname "")) "}")))
-     (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
-			    (embrace-build-help "\\command{" "}")))))
+    (use-package embrace
+     :ensure t
+     :config
+     (add-hook 'LaTeX-mode-hook (lambda ()
+       (embrace-add-pair ?e "\\begin{" "}")
+       (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
+       (embrace-add-pair ?m "\\(" "\\)")
+       (embrace-add-pair ?M "\\[" "\\]")
+       (embrace-add-pair ?l "\\left\(" "\\right\)")
+       (defun embrace-with-command ()
+       (let ((fname (read-string "Command: ")))
+	 (cons (format "\\%s{" (or fname "")) "}")))
+       (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
+			      (embrace-build-help "\\command{" "}")))))
 
-   (use-package evil-embrace
-    :init
-    (evil-embrace-enable-evil-surround-integration)
-    (setq evil-embrace-show-help-p nil))
+     (use-package evil-embrace
+      :init
+      (evil-embrace-enable-evil-surround-integration)
+      (setq evil-embrace-show-help-p nil))
 #+END_SRC
 
 #+RESULTS:
@@ -341,6 +341,8 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
   (my-leader-def 'c++-mode-map
     "c" 'compile)
 #+end_src
+
+#+RESULTS:
 
 
 *** LaTeX
@@ -449,6 +451,9 @@ goto-label.
     (insert (concat "\\ref{" label "}"))))
 #+end_src
 
+#+RESULTS:
+: my-ref-label
+
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'LaTeX-mode-map
@@ -490,15 +495,18 @@ goto-label.
     (add-hook 'TeX-after-compilation-finished-functions
 	#'TeX-revert-document-buffer))
 #+end_src
+
+#+RESULTS:
+: t
+
 I wrote a small package called [[https://github.com/cjl8zf/evil-pdf-tools][evil-pdf-tools]] that adds vim style key
 bindings for navigating pdfs and also simulates the vim search for
 pdfs.
 #+begin_src emacs-lisp
-  (require 'evil-pdf-tools "~/.emacs.d/evil-pdf-tools-0.0.1.el")
+  ;; (require 'evil-pdf-tools "~/.emacs.d/evil-pdf-tools-0.0.1.el")
 #+end_src
 
 #+RESULTS:
-: t
 
 *** Sage
 **** Setup
@@ -526,6 +534,9 @@ pdfs.
     (shell-command "find . -name \"*.sage\" -print | etags -l \"python\" -"))
 #+END_SRC
 
+#+RESULTS:
+: generate-sage-tags
+
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'sage-shell:sage-mode-map
@@ -551,6 +562,8 @@ pdfs.
     :init
     (setq gap-executable "/Applications/gap/bin/gap.sh"))
 #+end_src
+
+#+RESULTS:
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -585,6 +598,8 @@ pdfs.
 	(evil-append-line nil)
 	(haskell-indentation-newline-and-indent))))
 #+end_src
+
+#+RESULTS:
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -665,12 +680,12 @@ pdfs.
   ;; (use-package org-mru-clock
   ;;   :config
   ;;     (setq org-mru-clock-completing-read #'ivy-completing-read))
-  (use-package org-drill
-    :ensure org-plus-contrib
-    :config
-    (setq org-drill-add-random-noise-to-intervals-p t))
+  ;; (use-package org-drill
+  ;;   :ensure org-plus-contrib
+  ;;   :config
+  ;;   (setq org-drill-add-random-noise-to-intervals-p t))
 
-  (use-package org-edit-latex)
+  ;; (use-pa ckage org-edit-latex)
 
   (defun my-org-hide-current-body ()
     "Hide body of current heading and go to heading."
@@ -706,33 +721,6 @@ pdfs.
 #+RESULTS:
 : my-evil-org-insert-subheading
 
-#+begin_src emacs-lisp
-  (use-package org-roam
-    :ensure t
-    :hook
-    (after-init . org-roam-mode)
-    :custom
-    (org-roam-directory "~/org/")
-    (server-start)
-    (require 'org-protocol)
-    (require 'org-roam-protocol))
-
-  (use-package org-roam-server
-    :ensure t
-    :config
-    (setq org-roam-server-host "127.0.0.1"
-	  org-roam-server-port 8080
-	  org-roam-server-authenticate nil
-	  org-roam-server-export-inline-images t
-	  org-roam-server-serve-files nil
-	  org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
-	  org-roam-server-network-poll t
-	  org-roam-server-network-arrows nil
-	  org-roam-server-network-label-truncate t
-	  org-roam-server-network-label-truncate-length 60
-	  org-roam-server-network-label-wrap-length 20))
-#+end_src
-
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'org-mode-map
@@ -753,6 +741,8 @@ pdfs.
     "ri" 'org-roam-insert
     "cb" 'org-babel-execute-src-block)
 
+    (setq org-confirm-babel-evaluate nil)
+  
   (general-define-key
    :states 'normal
    :keymaps 'org-mode-map
@@ -794,6 +784,9 @@ emacs.
   (setq helm-dash-common-docsets '("Python 2" "Haskell" "Sage" "Emacs Lisp"))
 #+end_src
 
+#+RESULTS:
+| Python 2 | Haskell | Sage | Emacs Lisp |
+
 
 We will display the documentation in the eww web-browser in emacs.
 
@@ -816,6 +809,10 @@ possible otherwise split vertically.
 	display-buffer-alist)
 #+end_src
 
+#+RESULTS:
+| \*eww\* | (eww-display+) |
+| \*eww\* | (eww-display+) |
+
 ** Completions
 *** Yasnippet
 #+begin_src emacs-lisp
@@ -833,6 +830,8 @@ possible otherwise split vertically.
   (use-package yasnippet-snippets
     :ensure t)
 #+end_src
+
+#+RESULTS:
 
 *** Hippie Expand
 #+begin_src emacs-lisp
@@ -877,6 +876,9 @@ possible otherwise split vertically.
 	  try-complete-lisp-symbol-partially
 	  try-complete-lisp-symbol))
 #+end_src
+
+#+RESULTS:
+| try-expand-dabbrev | try-expand-dabbrev-all-buffers | try-expand-dabbrev-from-kill | try-complete-file-name-partially | try-complete-file-name | try-expand-all-abbrevs | try-expand-list | try-expand-line | try-complete-lisp-symbol-partially | try-complete-lisp-symbol |
 
 ** Writing
 *** Spell-check
@@ -925,16 +927,22 @@ opens the suggestion in a pop-up menu.
     (setq langtool-java-bin "/usr/bin/java")
     (setq langtool-language-tool-jar "/Applications/LanguageTool/languagetool-commandline.jar"))
 #+end_src
+
+#+RESULTS:
+: t
+
 I wrote a package called [[https://github.com/cjl8zf/langtool-ignore-fonts][langtool-ignore-fonts]] that extends the
 langtool package to ignore specified fonts. I use this to ignore the
 LaTeX markup when checking syntax. 
 #+begin_src emacs-lisp
-(use-package langtool-ignore-fonts
-  :load-path "~/.emacs.d/elpa/"
-  :config 
-  (add-hook 'markdown-mode-hook (lambda () 
-				  (setq-local langtool-ignore-fonts '(markdown-code-face)))))
+  ;; (use-package langtool-ignore-fonts
+  ;;   :load-path "~/.emacs.d/elpa/"
+  ;;   :config 
+  ;;   (add-hook 'markdown-mode-hook (lambda () 
+  ;; 				  (setq-local langtool-ignore-fonts '(markdown-code-face)))))
 #+end_src
+
+#+RESULTS:
 
 ** Project Management
 #+begin_src emacs-lisp
@@ -947,6 +955,10 @@ LaTeX markup when checking syntax.
     (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
     (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
 #+end_src
+
+#+RESULTS:
+: t
+
 #+begin_src emacs-lisp
   (use-package skeletor
     :config
@@ -1002,6 +1014,9 @@ a file in Dropbox. These functions allow easy access to that computer.
       (buffer-string)))
 #+end_src
 
+#+RESULTS:
+: get-string-from-file
+
 ** Programming
 *** Syntax
 #+BEGIN_SRC emacs-lisp
@@ -1020,6 +1035,8 @@ a file in Dropbox. These functions allow easy access to that computer.
     (add-to-list 'flycheck-checkers 'proselint))
 #+END_SRC
 
+#+RESULTS:
+
 #+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent
   :config
@@ -1027,6 +1044,7 @@ a file in Dropbox. These functions allow easy access to that computer.
 #+END_SRC
 
 #+RESULTS:
+: t
 
 *** Ctags
 #+BEGIN_SRC emacs-lisp
@@ -1047,26 +1065,6 @@ a file in Dropbox. These functions allow easy access to that computer.
 
 #+RESULTS:
 
-** Email
-#+begin_src emacs-lisp
-  (require 'mu4e)
-
-  (setq mail-user-agent 'mu4e-user-agent)
-
-  (setq mu4e-drafts-folder "/[Gmail].Drafts")
-  (setq mu4e-sent-folder   "/[Gmail].Sent Mail")
-  (setq mu4e-trash-folder  "/[Gmail].Trash")
-
-  (setq mu4e-sent-messages-behavior 'delete)
-
-  (setq mu4e-get-mail-command "offlineimap")
-  (setq mu4e~get-mail-password-regexp "^Password:")
-
-  (setq mu4e-completing-read-function 'ivy-completing-read)
-  (setq mu4e-compose-format-flowed t)
-#+end_src
-
-
 *** Keybindings
 #+begin_src emacs-lisp
   (general-define-key
@@ -1078,6 +1076,9 @@ a file in Dropbox. These functions allow easy access to that computer.
    :keymaps 'mu4e-view-mode-map
    "g" 'ace-link-mu4e)
 #+end_src
+
+#+RESULTS:
+
 ** Theme
 Here we change the basic look and feel. 
 #+begin_src emacs-lisp
@@ -1099,7 +1100,7 @@ Here we change the basic look and feel.
 		  (mouse-menu-bar-map)
 		(mouse-menu-major-mode-map)))))
 
-  (set-face-attribute 'default nil :height 180)
+  (set-face-attribute 'default nil :height 160)
 
   (scroll-bar-mode -1)
   (tool-bar-mode -1)
