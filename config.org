@@ -18,6 +18,9 @@ Setup package management.
   (setq use-package-always-ensure t)
 #+end_src
 
+#+RESULTS:
+: t
+
 ** General Settings
 *** Customs File
 When changing a variable through customize-variable dialog save these
@@ -43,12 +46,18 @@ Set the emacs backup to stop cluttering folders with backup files.
   (setq vc-make-backup-files t)
 #+end_src
 
+#+RESULTS:
+: t
+
 *** No Bell 
 Turn off both the bell sound and the visual indicator. 
 #+begin_src emacs-lisp
   (setq visible-bell       nil
 	ring-bell-function #'ignore)
 #+end_src
+
+#+RESULTS:
+: ignore
 
 ** UI
 *** Recentf
@@ -59,6 +68,9 @@ Builds a list of the recently opened files.
     :config
     (setq recentf-max-saved-items nil))
 #+end_src
+
+#+RESULTS:
+: t
 
 *** Ivy
 #+begin_src emacs-lisp
@@ -113,6 +125,9 @@ Builds a list of the recently opened files.
       (or (plist-get info arg-name) value)))
 #+end_src
 
+#+RESULTS:
+: my-posframe-arghandler
+
 *** 
 
 *** Window Management Setup
@@ -137,9 +152,9 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 : my-horizontal-recenter
 
 #+begin_src emacs-lisp
-  (split-window-horizontally)
-  (split-window-horizontally)
-  (balance-windows)
+  ;; (split-window-horizontally)
+  ;; (split-window-horizontally)
+  ;; (balance-windows)
 #+end_src
 
 #+RESULTS:
