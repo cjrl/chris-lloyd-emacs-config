@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (org-babel-load-file "~/.emacs.d/config.org")
 
 (defvar bootstrap-version)
@@ -21,3 +22,36 @@
   :straight (lean4-mode :type git :host github
                         :repo "leanprover-community/lean4-mode"
                         :files ("*.el" "data")))
+
+(setq warning-minimum-level :emergency)
+
+(use-package dash)
+(use-package lsp-mode)
+(use-package lsp-ui)
+;; (setq lsp-ui-doc-show-with-cursor 't)
+(setq lsp-ui-doc-position 'at-point)
+(setq lsp-ui-doc-delay 0)
+(use-package magit-section)
+
+(add-to-list 'load-path "~/.emacs.d/lean4-mode")
+(require 'lean4-mode)
+maui hwaiian cruise 10 day
+(my-leader-def 'lean4-mode-map
+  "?" 'lsp-ui-doc-mode
+  )
+
+
+;;(require 'cl)
+(defun quail-jk (key idx) 
+  (let ((curpos (point)))
+    (quail-delete-region)
+    (evil-normal-state)
+    (print curpos)
+    (run-at-time 0.002 nil (lambda () (goto-char (- curpos 2))))
+    (throw 'quail-tag nil))
+  )
+
+;; (add-hook 'lean4-mode-hook (lambda () (quail-define-rules 
+;; 				       ("jk" quail-jk))))
+
+(use-package company)
