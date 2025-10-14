@@ -32,15 +32,9 @@
 (setq lsp-ui-doc-delay 0)
 (use-package magit-section)
 
-(add-to-list 'load-path "~/.emacs.d/lean4-mode")
-(require 'lean4-mode)
-
 (my-leader-def 'lean4-mode-map
-  "?" 'lsp-ui-doc-mode
-  )
+  "?" 'lsp-ui-doc-mode)
 
-
-;;(require 'cl)
 (defun quail-jk (key idx) 
   (let ((curpos (point)))
     (quail-delete-region)
@@ -50,39 +44,23 @@
     (throw 'quail-tag nil))
   )
 
-
-(use-package corfu
-  :init
-  (global-corfu-mode)
-  :custom 
-  (setq corfu-auto        t
-	corfu-auto-delay  0 
-	corfu-auto-prefix 2))
-
-(use-package lsp-mode
-  :after company)
-
-(use-package lsp-ui)
 ;; (add-hook 'lean4-mode-hook (lambda () (quail-define-rules 
 ;; 				       ("jk" quail-jk))))
-;; (use-package orderless
-;;   :custom
-;;   (orderless-matching-styles '(orderless-literal orderless-regexp orderless-flex))
-;;   (completion-styles '(orderless partial-completion basic))
-;;   (completion-category-defaults nil)
-;;   (completion-category-overrides '((file (styles partial-completion)))))
 
-;; (lambda ()
-;;   (setq-local completion-category-defaults
-;;               (assoc-delete-all 'lsp-capf completion-category-defaults)))
+(use-package lsp-mode
+  :after company
+  :custom
+  (setq-local lsp-inlay-hint-enable nil)
+  (setq lsp-completion-provider t))
+
+(use-package lsp-ui)
+
+(use-package company
+  :custom
+  (setq company-idle-delay 0)
+  (add-to-list 'company-backends 'company-elisp)
+  (global-company-mode))
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
-
-(setq lsp-prefer-capf t)
-(setq company-idle-delay 0)
-
-(add-to-list 'company-backends 'company-elisp)
-(add-to-list 'company-backends 'company-elisp)
-(global-company-mode)
 
