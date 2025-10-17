@@ -1,17 +1,33 @@
 * Chris Lloyd's Emacs Configuration
 ** Package Management
 Setup package management.
+
 #+begin_src emacs-lisp
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+	  (expand-file-name
+	  "straight/repos/straight.el/bootstrap.el"
+	  (or (bound-and-true-p straight-base-dir)
+	      user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+	  (url-retrieve-synchronously
+	  "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+	  'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
   (package-initialize)
+
   (require 'package)
-  (setq package-enable-at-startup nil)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
-  (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
+   (unless (package-installed-p 'use-package)
+       (package-refresh-contents)
+       (package-install 'use-package))
 
   (require 'use-package)
 
@@ -161,47 +177,50 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Evil
 #+begin_src emacs-lisp
-  (use-package evil
-      :config
-      (setq evil-want-visual-char-semi-exclusive t)
-      (setq evil-want-fine-undo t)
-      (global-undo-tree-mode)
-      (evil-mode 1))
+    (use-package evil
+	:config
+	(setq evil-want-visual-char-semi-exclusive t)
+	(setq evil-want-fine-undo t)
+	(global-undo-tree-mode)
+	(evil-mode 1))
 
-  (use-package evil-smartparens)
+    (use-package evil-smartparens)
 
-  ;; (use-package evil-magit)
+    ;; (use-package evil-magit)
 
-  (use-package evil-org
-      :ensure t
-      :after org
-      :config
-      (add-hook 'org-mode-hook 'evil-org-mode)
-      ;; (add-hook 'evil-org-mode-hook
-      ;; 	    (lambda ()
-      ;; 	    (evil-org-set-key-theme)))
-      (require 'evil-org-agenda)
-      (evil-org-agenda-set-keys))
+    (use-package evil-org
+	:ensure t
+	:after org
+	:config
+	(add-hook 'org-mode-hook 'evil-org-mode)
+	;; (add-hook 'evil-org-mode-hook
+	;; 	    (lambda ()
+	;; 	    (evil-org-set-key-theme)))
+	(require 'evil-org-agenda)
+	(evil-org-agenda-set-keys))
 
-  (use-package evil-commentary
-      :config
-      (evil-commentary-mode))
+    (use-package evil-commentary
+	:config
+	(evil-commentary-mode))
+    
+  (use-package evil-collection)
+  (evil-collection-init 'magit)
 
-  (use-package evil-args
-      :init
-      (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
-      (define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
+    (use-package evil-args
+	:init
+	(define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+	(define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
 
-  (use-package key-chord
-      :config
-      (key-chord-mode 1)
-      (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
-      (key-chord-define evil-replace-state-map  "jk" 'evil-normal-state)
-      (key-chord-define ivy-minibuffer-map  "jk" 'keyboard-escape-quit)
-      ;; (add-hook 'evil-lispy-mode-hook '(key-chord-define evil-lispy-mode-map  "jk" 'evil-normal-state))
-      (key-chord-define evil-visual-state-map  "jk" 'evil-normal-state))
+    (use-package key-chord
+	:config
+	(key-chord-mode 1)
+	(key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
+	(key-chord-define evil-replace-state-map  "jk" 'evil-normal-state)
+	(key-chord-define ivy-minibuffer-map  "jk" 'keyboard-escape-quit)
+	;; (add-hook 'evil-lispy-mode-hook '(key-chord-define evil-lispy-mode-map  "jk" 'evil-normal-state))
+	(key-chord-define evil-visual-state-map  "jk" 'evil-normal-state))
 
-  (use-package evil-matchit)
+    (use-package evil-matchit)
 #+end_src
 
 #+RESULTS:
@@ -343,7 +362,6 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 #+end_src
 
 #+RESULTS:
-
 
 *** LaTeX
 **** Setup
@@ -777,6 +795,46 @@ pdfs.
 
 #+RESULTS:
 
+*** Lean 4
+
+#+BEGIN_SRC emacs-lisp
+  (use-package lean4-mode
+    :commands lean4-mode
+    :straight (lean4-mode :type git :host github
+			  :repo "leanprover-community/lean4-mode"
+			  :files ("*.el" "data")))
+#+END_SRC
+
+**** Keybindings
+#+begin_src emacs-lisp
+    (my-leader-def 'lean4-mode-map
+      "l" 'lean4-toggle-info
+      "?" 'lsp-ui-doc-mode)
+#+end_src
+
+#+RESULTS:
+
+**** `jk` normal mode fix 
+
+Lean4-mode uses quail to replace LaTeX-like symbols \alpha with the
+unicode equivalents. This interferes with key-chored mode which also
+uses quail under the hood. This function adds jk directly to the quail
+map in lean4-mode so that jk keeps working. 
+
+#+begin_src emacs-lisp
+;; -*- lexical-binding: t; -*-
+   (defun quail-jk (key idx) 
+     (let ((curpos (point)))
+       (quail-delete-region)
+       (evil-normal-state)
+       (print curpos)
+       (run-at-time 0.002 nil (lambda () (goto-char (- curpos 2))))
+       (throw 'quail-tag nil))
+     )
+
+  (add-hook 'lean4-mode-hook (lambda () (quail-define-rules ((append . t)) ("jk" quail-jk))))
+#+end_src
+
 ** Documentation
 We will use helm together with helm-dash to view documentation in
 emacs.
@@ -1049,6 +1107,32 @@ a file in Dropbox. These functions allow easy access to that computer.
 *** Ctags
 #+BEGIN_SRC emacs-lisp
   (use-package ctags-update)
+#+END_SRC
+
+#+RESULTS:
+
+*** Company
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :custom
+    (setq company-idle-delay 0)
+    (add-to-list 'company-backends 'company-elisp)
+    (global-company-mode))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+#+END_SRC
+
+*** Language Server Protocol
+
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :after company
+    :custom
+    (setq lsp-inlay-hint-enable nil)
+    (setq lsp-completion-provider t))
+
+  (use-package lsp-ui)
 #+END_SRC
 
 #+RESULTS:
