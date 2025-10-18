@@ -796,14 +796,16 @@ pdfs.
 #+RESULTS:
 
 *** Lean 4
-
 #+BEGIN_SRC emacs-lisp
+  (setq straight-built-in-pseudo-packages '(emacs xref nadvice python image-mode project flymake))
   (use-package lean4-mode
     :commands lean4-mode
     :straight (lean4-mode :type git :host github
 			  :repo "leanprover-community/lean4-mode"
 			  :files ("*.el" "data")))
 #+END_SRC
+
+#+RESULTS:
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -821,19 +823,22 @@ unicode equivalents. This interferes with key-chored mode which also
 uses quail under the hood. This function adds jk directly to the quail
 map in lean4-mode so that jk keeps working. 
 
-#+begin_src emacs-lisp
-;; -*- lexical-binding: t; -*-
+#+begin_src emacs-lisp :lexical t 
    (defun quail-jk (key idx) 
      (let ((curpos (point)))
        (quail-delete-region)
        (evil-normal-state)
-       (print curpos)
-       (run-at-time 0.002 nil (lambda () (goto-char (- curpos 2))))
+       (run-at-time 0.002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
        (throw 'quail-tag nil))
      )
 
-  (add-hook 'lean4-mode-hook (lambda () (quail-define-rules ((append . t)) ("jk" quail-jk))))
+  (add-hook 'lean4-mode-hook (lambda ()
+      (setq lsp-inlay-hint-enable nil)
+      (quail-define-rules ((append . t)) ("jk" quail-jk))))
 #+end_src
+
+#+RESULTS:
+| (closure (t) nil (setq lsp-inlay-hint-enable nil) (quail-define-rules ((append . t)) (jk quail-jk))) | lsp |
 
 ** Documentation
 We will use helm together with helm-dash to view documentation in
@@ -1184,7 +1189,7 @@ Here we change the basic look and feel.
 		  (mouse-menu-bar-map)
 		(mouse-menu-major-mode-map)))))
 
-  (set-face-attribute 'default nil :height 160)
+  (set-face-attribute 'default nil :height 140)
 
   (scroll-bar-mode -1)
   (tool-bar-mode -1)
