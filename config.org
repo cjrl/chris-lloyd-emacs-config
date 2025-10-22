@@ -828,7 +828,7 @@ map in lean4-mode so that jk keeps working.
      (let ((curpos (point)))
        (quail-delete-region)
        (evil-normal-state)
-       (run-at-time 0.002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
+       (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
        (throw 'quail-tag nil))
      )
 
@@ -950,7 +950,8 @@ opens the suggestion in a pop-up menu.
 #+begin_src emacs-lisp
   (use-package flyspell
     :config
-    (setq ispell-program-name "/opt/local/bin/aspell")
+    ;; (setq ispell-program-name "/opt/local/bin/aspell")
+    (setq ispell-program-name "/usr/bin/aspell")
     (flyspell-mode 1)
     (defun mk-flyspell-correct-previous (&optional words)
       "Correct word before point, reach distant words.
