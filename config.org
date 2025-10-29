@@ -245,15 +245,21 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
       :ensure t
       :config
       (global-evil-surround-mode 1)
-	;; (evil-add-to-alist
-	;; 'evil-surround-pairs-alist
-	;; ?\( '("(" . ")")
-	;; ?\[ '("[" . "]")
-	;; ?\{ '("{" . "}")
-	;; ?\) '("( " . " )")
-	;; ?\] '("[ " . " ]")
-	;; ?\} '("{ " . " }"))
-  )
+	(setq-default evil-surround-pairs-alist
+	    '((?\( . ("(" . ")"))
+	    (?\[ . ("[ " . " ]"))
+	    (?\{ . ("{" . "}"))
+	    (?\) . ("( " . " )"))
+	    (?\] . ("[" . "]"))
+	    (?\} . ("{ " . " }"))
+	    (?# . ("#{" . "}"))
+	    (?b . ("(" . ")"))
+	    (?B . ("{" . "}"))
+	    (?> . ("<" . ">"))
+	    (?t . evil-surround-read-tag)
+	    (?< . evil-surround-read-tag)
+	    (?\C-f . evil-surround-prefix-function)
+	    (?f . evil-surround-function))))
 
     (use-package embrace
      :ensure t
@@ -824,17 +830,18 @@ uses quail under the hood. This function adds jk directly to the quail
 map in lean4-mode so that jk keeps working. 
 
 #+begin_src emacs-lisp :lexical t 
-   (defun quail-jk (key idx) 
-     (let ((curpos (point)))
-       (quail-delete-region)
-       (evil-normal-state)
-       (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
-       (throw 'quail-tag nil))
-     )
+     (defun quail-jk (key idx) 
+       (let ((curpos (point)))
+	 (quail-delete-region)
+	 (evil-normal-state)
+	 (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
+	 (throw 'quail-tag nil))
+       )
 
-  (add-hook 'lean4-mode-hook (lambda ()
-      (setq lsp-inlay-hint-enable nil)
-      (quail-define-rules ((append . t)) ("jk" quail-jk))))
+    (add-hook 'lean4-mode-hook (lambda ()
+	(setq lsp-inlay-hint-enable nil)
+	(setq lsp-warn-no-matched-method nil)
+	(quail-define-rules ((append . t)) ("jk" quail-jk))))
 #+end_src
 
 #+RESULTS:
@@ -1135,8 +1142,11 @@ a file in Dropbox. These functions allow easy access to that computer.
   (use-package lsp-mode
     :after company
     :custom
-    (setq lsp-inlay-hint-enable nil)
-    (setq lsp-completion-provider t))
+    (lsp-inlay-hint-enable nil)
+    (lsp-completion-provider t)
+    :config
+    (add-to-list 'warning-suppress-log-types '(lsp-mode))
+    (add-to-list 'warning-suppress-types '(lsp-mode)))
 
   (use-package lsp-ui)
 #+END_SRC
