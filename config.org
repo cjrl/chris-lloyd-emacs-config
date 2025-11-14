@@ -182,6 +182,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 	(setq evil-want-visual-char-semi-exclusive t)
 	(setq evil-want-fine-undo t)
 	(global-undo-tree-mode)
+	(setq undo-tree-enable-undo-in-region nil)
 	(evil-mode 1))
 
     (use-package evil-smartparens)
@@ -202,7 +203,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
     (use-package evil-commentary
 	:config
 	(evil-commentary-mode))
-    
+
   (use-package evil-collection)
   (evil-collection-init 'magit)
 
@@ -289,6 +290,8 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 #+begin_src emacs-lisp
   (use-package general)
 
+  (define-key evil-insert-state-map (kbd "<escape>") nil)
+
   (general-define-key
    :keymaps 'normal
    "z =" 'mk-flyspell-correct-previous
@@ -298,7 +301,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
    "g a" 'evil-forward-arg
    "g A" 'evil-backward-arg
    "<deletechar>" '(lambda () (interactive) (switch-to-buffer-other-window "*Sage*")))
-
+  
   (general-create-definer my-leader-def
     :states '(normal emacs visual)
     :keymaps '(global magit-mode-map)
@@ -809,15 +812,46 @@ pdfs.
     :straight (lean4-mode :type git :host github
 			  :repo "leanprover-community/lean4-mode"
 			  :files ("*.el" "data")))
+(defun lean-toggle-check ()
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (cond
+     ;; #check → remove
+     ((looking-at "^#check\\(\\s-+\\)?")
+      (replace-match ""))
+     ;; #eval → replace with #check
+     ((looking-at "^#eval\\(\\s-+\\)?")
+      (replace-match "#check "))
+     ;; other → insert #check
+     (t
+      (insert "#check ")))))
+
+(defun lean-toggle-eval ()
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (cond
+     ;; #eval → remove
+     ((looking-at "^#eval\\(\\s-+\\)?")
+      (replace-match ""))
+     ;; #check → replace with #eval
+     ((looking-at "^#check\\(\\s-+\\)?")
+      (replace-match "#eval "))
+     ;; other → insert #eval
+     (t
+      (insert "#eval ")))))
 #+END_SRC
 
 #+RESULTS:
 
 **** Keybindings
 #+begin_src emacs-lisp
-    (my-leader-def 'lean4-mode-map
-      "l" 'lean4-toggle-info
-      "?" 'lsp-ui-doc-mode)
+  (my-leader-def 'lean4-mode-map
+    "l c" 'lean-toggle-check
+    "l e" 'lean-toggle-eval
+    "l l" 'lean4-toggle-info
+    "?" 'lsp-ui-doc-mode)
 #+end_src
 
 #+RESULTS:
