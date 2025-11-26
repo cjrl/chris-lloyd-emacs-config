@@ -228,59 +228,59 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Surrounds
 #+BEGIN_SRC emacs-lisp
-    (use-package smartparens-config
-	       :ensure smartparens
-	       :config
-	       (setq sp-max-pair-length 20)
-	       (sp-pair "\\left\\langle" "\\right\\rangle")
-	       (sp-pair "\\left(" "\\right)")
-	       (sp-pair "\\left\\{" "\\right\\}")
-	       (sp-pair "|" "|")
-	       (sp-pair "\\left|" "\\right|")
-	       (sp-pair "\\left\\langle" "\\right\\rangle")
-	       (sp-pair "\\left\\lceil" "\\right\\rceil")
-	       (sp-pair "\\left\\lfloor" "\\right\\rfloor")
-	       (smartparens-global-mode 1))
+  (use-package smartparens-config
+	     :ensure smartparens
+	     :config
+	     (setq sp-max-pair-length 20)
+	     (sp-pair "\\left\\langle" "\\right\\rangle")
+	     (sp-pair "\\left(" "\\right)")
+	     (sp-pair "\\left\\{" "\\right\\}")
+	     ;; (sp-pair "|" "|")
+	     (sp-pair "\\left|" "\\right|")
+	     (sp-pair "\\left\\langle" "\\right\\rangle")
+	     (sp-pair "\\left\\lceil" "\\right\\rceil")
+	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
+	     (smartparens-global-mode 1))
 
-    (use-package evil-surround
-      :ensure t
-      :config
-      (global-evil-surround-mode 1)
-	(setq-default evil-surround-pairs-alist
-	    '((?\( . ("(" . ")"))
-	    (?\[ . ("[ " . " ]"))
-	    (?\{ . ("{" . "}"))
-	    (?\) . ("( " . " )"))
-	    (?\] . ("[" . "]"))
-	    (?\} . ("{ " . " }"))
-	    (?# . ("#{" . "}"))
-	    (?b . ("(" . ")"))
-	    (?B . ("{" . "}"))
-	    (?> . ("<" . ">"))
-	    (?t . evil-surround-read-tag)
-	    (?< . evil-surround-read-tag)
-	    (?\C-f . evil-surround-prefix-function)
-	    (?f . evil-surround-function))))
+  (use-package evil-surround
+    :ensure t
+    :config
+    (global-evil-surround-mode 1)
+      (setq-default evil-surround-pairs-alist
+	  '((?\( . ("(" . ")"))
+	  (?\[ . ("[ " . " ]"))
+	  (?\{ . ("{" . "}"))
+	  (?\) . ("( " . " )"))
+	  (?\] . ("[" . "]"))
+	  (?\} . ("{ " . " }"))
+	  (?# . ("#{" . "}"))
+	  (?b . ("(" . ")"))
+	  (?B . ("{" . "}"))
+	  (?> . ("<" . ">"))
+	  (?t . evil-surround-read-tag)
+	  (?< . evil-surround-read-tag)
+	  (?\C-f . evil-surround-prefix-function)
+	  (?f . evil-surround-function))))
 
-    (use-package embrace
-     :ensure t
-     :config
-     (add-hook 'LaTeX-mode-hook (lambda ()
-       (embrace-add-pair ?e "\\begin{" "}")
-       (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
-       (embrace-add-pair ?m "\\(" "\\)")
-       (embrace-add-pair ?M "\\[" "\\]")
-       (embrace-add-pair ?l "\\left\(" "\\right\)")
-       (defun embrace-with-command ()
-       (let ((fname (read-string "Command: ")))
-	 (cons (format "\\%s{" (or fname "")) "}")))
-       (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
-			      (embrace-build-help "\\command{" "}")))))
+  (use-package embrace
+   :ensure t
+   :config
+   (add-hook 'LaTeX-mode-hook (lambda ()
+     (embrace-add-pair ?e "\\begin{" "}")
+     (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
+     (embrace-add-pair ?m "\\(" "\\)")
+     (embrace-add-pair ?M "\\[" "\\]")
+     (embrace-add-pair ?l "\\left\(" "\\right\)")
+     (defun embrace-with-command ()
+     (let ((fname (read-string "Command: ")))
+       (cons (format "\\%s{" (or fname "")) "}")))
+     (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
+			    (embrace-build-help "\\command{" "}")))))
 
-     (use-package evil-embrace
-      :init
-      (evil-embrace-enable-evil-surround-integration)
-      (setq evil-embrace-show-help-p nil))
+   (use-package evil-embrace
+    :init
+    (evil-embrace-enable-evil-surround-integration)
+    (setq evil-embrace-show-help-p nil))
 #+END_SRC
 
 #+RESULTS:
@@ -1239,8 +1239,8 @@ Here we change the basic look and feel.
   (scroll-bar-mode -1)
   (tool-bar-mode -1)
 
-  (use-package sublime-themes
-	     :init (progn (load-theme 'spolsky t)))
+  (use-package solarized-theme
+	     :init (progn (load-theme 'solarized-dark t)))
 
   (use-package modern-fringes)
 
