@@ -806,44 +806,61 @@ pdfs.
 
 *** Lean 4
 #+BEGIN_SRC emacs-lisp
-  (setq straight-built-in-pseudo-packages '(emacs xref nadvice python image-mode project flymake))
-  (use-package lean4-mode
-    :commands lean4-mode
-    :straight (lean4-mode :type git :host github
-			  :repo "leanprover-community/lean4-mode"
-			  :files ("*.el" "data")))
-(defun lean-toggle-check ()
-  (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (cond
-     ;; #check → remove
-     ((looking-at "^#check\\(\\s-+\\)?")
-      (replace-match ""))
-     ;; #eval → replace with #check
-     ((looking-at "^#eval\\(\\s-+\\)?")
-      (replace-match "#check "))
-     ;; other → insert #check
-     (t
-      (insert "#check ")))))
+      (setq straight-built-in-pseudo-packages '(emacs xref nadvice python image-mode project flymake))
+      (use-package lean4-mode
+	:commands lean4-mode
+	:straight (lean4-mode :type git :host github
+			    :repo "leanprover-community/lean4-mode"
+			    :files ("*.el" "data")))
 
-(defun lean-toggle-eval ()
-  (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (cond
-     ;; #eval → remove
-     ((looking-at "^#eval\\(\\s-+\\)?")
-      (replace-match ""))
-     ;; #check → replace with #eval
-     ((looking-at "^#check\\(\\s-+\\)?")
-      (replace-match "#eval "))
-     ;; other → insert #eval
-     (t
-      (insert "#eval ")))))
+  ;; (use-package nael
+  ;;   :straight (:host codeberg 
+  ;;              :repo "mekeor/nael"
+  ;;              :files (:defaults (:exclude "build.el"))))
+   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael")
+   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael-lsp")
+   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael-markdown")
+   ;; (require 'nael)
+   ;; (require 'nael-lsp)
+   ;; (require 'nael-markdown)
+   ;; (add-hook 'nael-mode-hook #'abbrev-mode)
+   ;; (add-hook 'nael-mode-hook #'eglot-ensure)
+
+    (add-hook 'lean4-mode-hook #'lsp)   ;; for Lean 4
+
+    (defun lean-toggle-check ()
+      (interactive)
+      (save-excursion
+	(beginning-of-line)
+	(cond
+	 ;; #check → remove
+	 ((looking-at "^#check\\(\\s-+\\)?")
+	  (replace-match ""))
+	 ;; #eval → replace with #check
+	 ((looking-at "^#eval\\(\\s-+\\)?")
+	  (replace-match "#check "))
+	 ;; other → insert #check
+	 (t
+	  (insert "#check ")))))
+
+    (defun lean-toggle-eval ()
+      (interactive)
+      (save-excursion
+	(beginning-of-line)
+	(cond
+	 ;; #eval → remove
+	 ((looking-at "^#eval\\(\\s-+\\)?")
+	  (replace-match ""))
+	 ;; #check → replace with #eval
+	 ((looking-at "^#check\\(\\s-+\\)?")
+	  (replace-match "#eval "))
+	 ;; other → insert #eval
+	 (t
+	  (insert "#eval ")))))
 #+END_SRC
 
 #+RESULTS:
+: lean-toggle-eval
 
 **** Keybindings
 #+begin_src emacs-lisp
