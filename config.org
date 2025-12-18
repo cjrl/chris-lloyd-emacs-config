@@ -177,12 +177,13 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Evil
 #+begin_src emacs-lisp
+    (use-package undo-fu)
+
     (use-package evil
 	:config
+	(setq evil-undo-system 'undo-fu)
 	(setq evil-want-visual-char-semi-exclusive t)
 	(setq evil-want-fine-undo t)
-	(global-undo-tree-mode)
-	(setq undo-tree-enable-undo-in-region nil)
 	(evil-mode 1))
 
     (use-package evil-smartparens)
@@ -885,7 +886,7 @@ map in lean4-mode so that jk keeps working.
        (let ((curpos (point)))
 	 (quail-delete-region)
 	 (evil-normal-state)
-	 (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
+	 (run-at-time 0.01 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
 	 (throw 'quail-tag nil))
        )
 
@@ -896,7 +897,7 @@ map in lean4-mode so that jk keeps working.
 #+end_src
 
 #+RESULTS:
-| (closure (t) nil (setq lsp-inlay-hint-enable nil) (quail-define-rules ((append . t)) (jk quail-jk))) | lsp |
+| (closure (t) nil (setq lsp-inlay-hint-enable nil) (setq lsp-warn-no-matched-method nil) (quail-define-rules ((append . t)) (jk quail-jk))) | (lambda nil (setq lsp-inlay-hint-enable nil) (setq lsp-warn-no-matched-method nil) (let ((tail '((jk quail-jk))) (map (quail-map)) (decode-map (and (quail-decode-map) (not nil))) (properties 'nil) key trans) (while tail (progn (setq key (car (car tail))) (setq trans (car (cdr (car tail)))) (setq tail (cdr tail))) (quail-defrule-internal key trans map t decode-map properties)))) | lsp |
 
 ** Documentation
 We will use helm together with helm-dash to view documentation in
