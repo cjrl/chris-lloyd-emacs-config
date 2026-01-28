@@ -177,33 +177,37 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Evil
 #+begin_src emacs-lisp
-    (use-package undo-fu)
+  (use-package undo-tree)
 
-    (use-package evil
-	:config
-	(setq evil-undo-system 'undo-fu)
-	(setq evil-want-visual-char-semi-exclusive t)
-	(setq evil-want-fine-undo t)
-	(evil-mode 1))
+  (use-package evil
+    :config
 
-    (use-package evil-smartparens)
+    (setq evil-want-visual-char-semi-exclusive t)
+    (setq evil-want-fine-undo t)
+    (global-undo-tree-mode)
+    (evil-set-undo-system 'undo-tree)
+    (setq undo-tree-enable-undo-in-region nil)
 
-    ;; (use-package evil-magit)
+    (evil-mode 1))
 
-    (use-package evil-org
-	:ensure t
-	:after org
-	:config
-	(add-hook 'org-mode-hook 'evil-org-mode)
-	;; (add-hook 'evil-org-mode-hook
-	;; 	    (lambda ()
-	;; 	    (evil-org-set-key-theme)))
-	(require 'evil-org-agenda)
-	(evil-org-agenda-set-keys))
+  (use-package evil-smartparens)
 
-    (use-package evil-commentary
-	:config
-	(evil-commentary-mode))
+  ;; (use-package evil-magit)
+
+  (use-package evil-org
+    :ensure t
+    :after org
+    :config
+    (add-hook 'org-mode-hook 'evil-org-mode)
+    ;; (add-hook 'evil-org-mode-hook
+    ;; 	    (lambda ()
+    ;; 	    (evil-org-set-key-theme)))
+    (require 'evil-org-agenda)
+    (evil-org-agenda-set-keys))
+
+  (use-package evil-commentary
+    :config
+    (evil-commentary-mode))
 
   (use-package evil-collection)
   (evil-collection-init 'magit)
@@ -886,7 +890,7 @@ map in lean4-mode so that jk keeps working.
        (let ((curpos (point)))
 	 (quail-delete-region)
 	 (evil-normal-state)
-	 (run-at-time 0.01 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
+	 (run-at-time 0.1 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
 	 (throw 'quail-tag nil))
        )
 
