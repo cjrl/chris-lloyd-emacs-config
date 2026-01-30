@@ -295,7 +295,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 #+begin_src emacs-lisp
   (use-package general)
 
-  (define-key evil-insert-state-map (kbd "<escape>") nil)
+  (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state))
 
   (general-define-key
    :keymaps 'normal
@@ -364,6 +364,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 #+end_src
 
 #+RESULTS:
+: evil-normal-state
 
 *** 
 
@@ -873,6 +874,7 @@ pdfs.
     "l c" 'lean-toggle-check
     "l e" 'lean-toggle-eval
     "l l" 'lean4-toggle-info
+    "l p" 'lsp-ui-peek-find-references
     "?" 'lsp-ui-doc-mode)
 #+end_src
 
