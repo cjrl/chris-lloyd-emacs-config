@@ -290,7 +290,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 #+begin_src emacs-lisp
   (use-package general)
 
-  (define-key evil-insert-state-map (kbd "<escape>") nil)
+  ;; (define-key evil-insert-state-map (kbd "<escape>") nil)
 
   (general-define-key
    :keymaps 'normal
@@ -301,7 +301,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
    "g a" 'evil-forward-arg
    "g A" 'evil-backward-arg
    "<deletechar>" '(lambda () (interactive) (switch-to-buffer-other-window "*Sage*")))
-  
+
   (general-create-definer my-leader-def
     :states '(normal emacs visual)
     :keymaps '(global magit-mode-map)
@@ -881,22 +881,102 @@ uses quail under the hood. This function adds jk directly to the quail
 map in lean4-mode so that jk keeps working. 
 
 #+begin_src emacs-lisp :lexical t 
-     (defun quail-jk (key idx) 
-       (let ((curpos (point)))
-	 (quail-delete-region)
-	 (evil-normal-state)
-	 (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
-	 (throw 'quail-tag nil))
-       )
+	 (defun quail-jk (key idx) 
+	   (let ((curpos (point)))
+	     (quail-delete-region)
+	     (evil-normal-state)
+	     (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
+	     (throw 'quail-tag nil))
+	   )
 
-    (add-hook 'lean4-mode-hook (lambda ()
-	(setq lsp-inlay-hint-enable nil)
-	(setq lsp-warn-no-matched-method nil)
-	(quail-define-rules ((append . t)) ("jk" quail-jk))))
+	(defun my-ensure-key-chord-wins ()
+	"Force key-chord to be the primary input-method-function."
+	(when (derived-mode-p 'lean4-mode)
+	    (setq-local input-method-function #'key-chord-input-method)))
+
+
+ 
+	;; (defun ensure-key-chord-wins ()
+	;; "Force key-chord to be the primary input-method-function."
+	;; (when (derived-mode-p 'lean4-mode)
+	;; 	  (setq-local input-method-function #'key-chord-input-method)))
+
+	;; (add-hook 'post-command-hook #'ensure-key-chord-wins nil t)
+	;; 	      (add-hook 'lean4-mode-hook (lambda ()
+	;; 		  (setq lsp-inlay-hint-enable nil)
+	;; 		  (setq lsp-warn-no-matched-method nil)
+	    ;; (quail-define-rules ((append . t)) ("jk" quail-jk))
+    (defun my-lean-key-chord-fix ()
+    "Force key-chord to take over input-method-function in Lean."
+    ;; We use a tiny delay to ensure Lean's own input-method setup is finished
+    (run-with-idle-timer 0.1 nil
+			(lambda ()
+			    (add-hook 'post-command-hook #'my-ensure-key-chord-wins nil t)
+			    (when (derived-mode-p 'lean4-mode)
+			    (key-chord-mode -1) ; Toggle off
+			    (key-chord-mode 1))))) ; Toggle on to seize control
+
+    (add-hook 'lean4-mode-hook #'my-lean-key-chord-fix)
+
+  ;; ))
+#+end_src
+
+**** Better Unicode Lean Symbol Completion
+
+We create a custom company-mode backend for lean symbol completion. 
+
+#+begin_src emacs-lisp :lexical t 
+  (require 'json)
+
+  (setq my-lean-symbols
+	(let ((json-file-path (expand-file-name "lean-symbols.json" user-emacs-directory)))
+	  (when (file-exists-p json-file-path)
+	    (with-temp-buffer
+	      (insert-file-contents json-file-path)
+	      (goto-char (point-min))
+	      ;; In json-parse-buffer, 'alist' usually forces keys to symbols.
+	      ;; We'll parse it and then ensure keys are strings if they aren't already.
+	      (let ((raw-data (json-parse-buffer :object-type 'alist)))
+		(mapcar (lambda (pair)
+			  (cons (format "%s" (car pair)) (cdr pair)))
+			raw-data))))))
+
+    (defun company-my-lean-symbols (command &optional arg &rest _ignored)
+    (interactive (list 'interactive))
+    (cl-case command
+	(interactive (company-begin-backend 'company-my-lean-symbols))
+	;; 1. Grab everything including the backslash
+	(prefix (company-grab-symbol-cons "[^[:space:]]+" 0))
+	(candidates
+	(let ((query (string-remove-prefix "\\" arg)))
+	(cl-loop for (trigger . symbol) in my-lean-symbols
+		    if (string-prefix-p query trigger)
+		    collect trigger)))
+	(annotation
+	(concat " " (cdr (assoc arg my-lean-symbols))))
+	(post-completion
+	(let ((symbol (cdr (assoc arg my-lean-symbols))))
+	(when symbol
+	    ;; 2. Logic to "gobble" the backslash if it exists
+	    (let* ((end (point))
+		    (start (- end (length arg)))
+		    ;; Check if the character right before our match is a backslash
+		    (maybe-backslash (char-before start)))
+	    (if (eq maybe-backslash ?\\)
+		(delete-region (1- start) end)
+		(delete-region start end))
+	    (insert symbol)))))))
+
+    (add-hook 'lean4-mode-hook
+	    (lambda ()
+		(add-to-list 'company-backends '(company-my-lean-symbols company-capf))
+		;; Optional: start completing after just 1 character
+		(setq-local company-minimum-prefix-length 1)))
+
 #+end_src
 
 #+RESULTS:
-| (closure (t) nil (setq lsp-inlay-hint-enable nil) (quail-define-rules ((append . t)) (jk quail-jk))) | lsp |
+| (closure (t) nil (add-to-list company-backends '(company-my-lean-symbols company-capf)) (setq-local company-minimum-prefix-length 1)) | (lambda nil (add-to-list company-backends '(company-my-lean-symbols company-capf)) (set (make-local-variable 'company-minimum-prefix-length) 1)) | my-lean-key-chord-fix | lsp |
 
 ** Documentation
 We will use helm together with helm-dash to view documentation in
