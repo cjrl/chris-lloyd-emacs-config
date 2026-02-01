@@ -3,35 +3,36 @@
 Setup package management.
 
 #+begin_src emacs-lisp
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-	  (expand-file-name
-	  "straight/repos/straight.el/bootstrap.el"
-	  (or (bound-and-true-p straight-base-dir)
-	      user-emacs-directory)))
-      (bootstrap-version 7))
-  (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-	  (url-retrieve-synchronously
-	  "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-	  'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+   (defvar bootstrap-version)
+   (let ((bootstrap-file
+  	   (expand-file-name
+  	   "straight/repos/straight.el/bootstrap.el"
+  	   (or (bound-and-true-p straight-base-dir)
+  	       user-emacs-directory)))
+       (bootstrap-version 7))
+   (unless (file-exists-p bootstrap-file)
+       (with-current-buffer
+  	   (url-retrieve-synchronously
+  	   "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+  	   'silent 'inhibit-cookies)
+       (goto-char (point-max))
+       (eval-print-last-sexp)))
+   (load bootstrap-file nil 'nomessage))
 
-  (package-initialize)
+  ;; (package-initialize)
+   (straight-use-package 'use-package)
+   (setq straight-use-package-by-default t)
 
-  (require 'package)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
+   ;; (require 'package)
+   ;;(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+   ;;(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
 
-   (unless (package-installed-p 'use-package)
-       (package-refresh-contents)
-       (package-install 'use-package))
+    ;; (unless (package-installed-p 'use-package)
+    ;; 	(package-refresh-contents)
+    ;; 	(package-install 'use-package))
 
-  (require 'use-package)
-
-  (setq use-package-always-ensure t)
+   ;; (require 'use-package)
+   ;; (setq use-package-always-ensure t)
 #+end_src
 
 #+RESULTS:
@@ -123,14 +124,14 @@ Builds a list of the recently opened files.
     :config)
 
   (use-package ace-popup-menu
-    :ensure t
+    :ensure 
     :config
     (ace-popup-menu-mode 1))
 
   (use-package ivy-posframe
     :config
     (ivy-posframe-mode)
-    (set-face-attribute 'ivy-posframe nil :background "DarkSlateBlue")
+    (set-face-attribute 'ivy-posframe nil :background "#073642")
     (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display))
 	  ivy-posframe-height-alist '((t . 5))
 	  ivy-posframe-parameters '((internal-border-width . 5))))
@@ -177,49 +178,50 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Evil
 #+begin_src emacs-lisp
+    (setq evil-want-keybinding nil)
     (use-package evil
-	:config
-	(setq evil-want-visual-char-semi-exclusive t)
-	(setq evil-want-fine-undo t)
-	(global-undo-tree-mode)
-	(setq undo-tree-enable-undo-in-region nil)
-	(evil-mode 1))
+  	:config
+  	(setq evil-want-visual-char-semi-exclusive t)
+  	(setq evil-want-fine-undo t)
+  	;;(global-undo-tree-mode)
+  	(setq undo-tree-enable-undo-in-region nil)
+  	(evil-mode 1))
 
     (use-package evil-smartparens)
 
     ;; (use-package evil-magit)
 
     (use-package evil-org
-	:ensure t
-	:after org
-	:config
-	(add-hook 'org-mode-hook 'evil-org-mode)
-	;; (add-hook 'evil-org-mode-hook
-	;; 	    (lambda ()
-	;; 	    (evil-org-set-key-theme)))
-	(require 'evil-org-agenda)
-	(evil-org-agenda-set-keys))
+  	:ensure t
+  	:after org
+  	:config
+  	(add-hook 'org-mode-hook 'evil-org-mode)
+  	;; (add-hook 'evil-org-mode-hook
+  	;; 	    (lambda ()
+  	;; 	    (evil-org-set-key-theme)))
+  	(require 'evil-org-agenda)
+  	(evil-org-agenda-set-keys))
 
     (use-package evil-commentary
-	:config
-	(evil-commentary-mode))
+  	:config
+  	(evil-commentary-mode))
 
   (use-package evil-collection)
   (evil-collection-init 'magit)
 
     (use-package evil-args
-	:init
-	(define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
-	(define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
+  	:init
+  	(define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+  	(define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
 
     (use-package key-chord
-	:config
-	(key-chord-mode 1)
-	(key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
-	(key-chord-define evil-replace-state-map  "jk" 'evil-normal-state)
-	(key-chord-define ivy-minibuffer-map  "jk" 'keyboard-escape-quit)
-	;; (add-hook 'evil-lispy-mode-hook '(key-chord-define evil-lispy-mode-map  "jk" 'evil-normal-state))
-	(key-chord-define evil-visual-state-map  "jk" 'evil-normal-state))
+  	:config
+  	(key-chord-mode 1)
+  	(key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
+  	(key-chord-define evil-replace-state-map  "jk" 'evil-normal-state)
+  	(key-chord-define ivy-minibuffer-map  "jk" 'keyboard-escape-quit)
+  	;; (add-hook 'evil-lispy-mode-hook '(key-chord-define evil-lispy-mode-map  "jk" 'evil-normal-state))
+  	(key-chord-define evil-visual-state-map  "jk" 'evil-normal-state))
 
     (use-package evil-matchit)
 #+end_src
@@ -228,59 +230,59 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Surrounds
 #+BEGIN_SRC emacs-lisp
-  (use-package smartparens-config
-	     :ensure smartparens
-	     :config
-	     (setq sp-max-pair-length 20)
-	     (sp-pair "\\left\\langle" "\\right\\rangle")
-	     (sp-pair "\\left(" "\\right)")
-	     (sp-pair "\\left\\{" "\\right\\}")
-	     ;; (sp-pair "|" "|")
-	     (sp-pair "\\left|" "\\right|")
-	     (sp-pair "\\left\\langle" "\\right\\rangle")
-	     (sp-pair "\\left\\lceil" "\\right\\rceil")
-	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
-	     (smartparens-global-mode 1))
+   (use-package smartparens
+  	     :ensure smartparens
+  	     :config
+  	     (setq sp-max-pair-length 20)
+  	     (sp-pair "\\left\\langle" "\\right\\rangle")
+  	     (sp-pair "\\left(" "\\right)")
+  	     (sp-pair "\\left\\{" "\\right\\}")
+  	     ;; (sp-pair "|" "|")
+  	     (sp-pair "\\left|" "\\right|")
+  	     (sp-pair "\\left\\langle" "\\right\\rangle")
+  	     (sp-pair "\\left\\lceil" "\\right\\rceil")
+  	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
+  	     (smartparens-global-mode 1))
 
-  (use-package evil-surround
-    :ensure t
-    :config
-    (global-evil-surround-mode 1)
-      (setq-default evil-surround-pairs-alist
-	  '((?\( . ("(" . ")"))
-	  (?\[ . ("[ " . " ]"))
-	  (?\{ . ("{" . "}"))
-	  (?\) . ("( " . " )"))
-	  (?\] . ("[" . "]"))
-	  (?\} . ("{ " . " }"))
-	  (?# . ("#{" . "}"))
-	  (?b . ("(" . ")"))
-	  (?B . ("{" . "}"))
-	  (?> . ("<" . ">"))
-	  (?t . evil-surround-read-tag)
-	  (?< . evil-surround-read-tag)
-	  (?\C-f . evil-surround-prefix-function)
-	  (?f . evil-surround-function))))
+    (use-package evil-surround
+      :ensure t
+      :config
+      (global-evil-surround-mode 1)
+        (setq-default evil-surround-pairs-alist
+  	  '((?\( . ("(" . ")"))
+  	  (?\[ . ("[ " . " ]"))
+  	  (?\{ . ("{" . "}"))
+  	  (?\) . ("( " . " )"))
+  	  (?\] . ("[" . "]"))
+  	  (?\} . ("{ " . " }"))
+  	  (?# . ("#{" . "}"))
+  	  (?b . ("(" . ")"))
+  	  (?B . ("{" . "}"))
+  	  (?> . ("<" . ">"))
+  	  (?t . evil-surround-read-tag)
+  	  (?< . evil-surround-read-tag)
+  	  (?\C-f . evil-surround-prefix-function)
+  	  (?f . evil-surround-function))))
 
-  (use-package embrace
-   :ensure t
-   :config
-   (add-hook 'LaTeX-mode-hook (lambda ()
-     (embrace-add-pair ?e "\\begin{" "}")
-     (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
-     (embrace-add-pair ?m "\\(" "\\)")
-     (embrace-add-pair ?M "\\[" "\\]")
-     (embrace-add-pair ?l "\\left\(" "\\right\)")
-     (defun embrace-with-command ()
-     (let ((fname (read-string "Command: ")))
-       (cons (format "\\%s{" (or fname "")) "}")))
-     (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
-			    (embrace-build-help "\\command{" "}")))))
+    (use-package embrace
+     :ensure t
+     :config
+     (add-hook 'LaTeX-mode-hook (lambda ()
+       (embrace-add-pair ?e "\\begin{" "}")
+       (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
+       (embrace-add-pair ?m "\\(" "\\)")
+       (embrace-add-pair ?M "\\[" "\\]")
+       (embrace-add-pair ?l "\\left\(" "\\right\)")
+       (defun embrace-with-command ()
+       (let ((fname (read-string "Command: ")))
+         (cons (format "\\%s{" (or fname "")) "}")))
+       (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
+  			    (embrace-build-help "\\command{" "}")))))
 
-   (use-package evil-embrace
-    :init
-    (evil-embrace-enable-evil-surround-integration)
-    (setq evil-embrace-show-help-p nil))
+     (use-package evil-embrace
+      :init
+      (evil-embrace-enable-evil-surround-integration)
+      (setq evil-embrace-show-help-p nil))
 #+END_SRC
 
 #+RESULTS:
@@ -375,7 +377,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 *** LaTeX
 **** Setup
 #+begin_src emacs-lisp
-  (use-package tex
+  (use-package auctex
     :ensure auctex
     :init
     (add-hook 'LaTeX-mode-hook (lambda () (flycheck-select-checker 'tex-chktex)))
@@ -969,14 +971,25 @@ We create a custom company-mode backend for lean symbol completion.
 
     (add-hook 'lean4-mode-hook
 	    (lambda ()
-		(add-to-list 'company-backends '(company-my-lean-symbols company-capf))
+
+		(setq-local company-backends 
+		'((company-my-lean-symbols
+		    company-dabbrev 
+		    company-dabbrev-code 
+		    company-files 
+		    company-capf 
+		    company-keywords
+		    company-semantic
+		company-clang)))
+
+		;; (add-to-list 'company-backends '(company-my-lean-symbols company-capf))
 		;; Optional: start completing after just 1 character
-		(setq-local company-minimum-prefix-length 1)))
+		(setq-local company-minimum-prefix-length 1)) 90)
 
 #+end_src
 
 #+RESULTS:
-| (closure (t) nil (add-to-list company-backends '(company-my-lean-symbols company-capf)) (setq-local company-minimum-prefix-length 1)) | (lambda nil (add-to-list company-backends '(company-my-lean-symbols company-capf)) (set (make-local-variable 'company-minimum-prefix-length) 1)) | my-lean-key-chord-fix | lsp |
+| (lambda nil (set (make-local-variable 'company-backends) '((company-my-lean-symbols company-dabbrev company-dabbrev-code company-files company-capf company-keywords company-semantic company-clang))) (set (make-local-variable 'company-minimum-prefix-length) 1)) | my-lean-key-chord-fix | lsp | (closure (t) nil (setq-local company-backends '((company-my-lean-symbols company-dabbrev company-dabbrev-code company-files company-capf company-keywords company-semantic company-clang))) (setq-local company-minimum-prefix-length 1)) |
 
 ** Documentation
 We will use helm together with helm-dash to view documentation in
@@ -1148,14 +1161,49 @@ LaTeX markup when checking syntax.
 
 ** Project Management
 #+begin_src emacs-lisp
-  (use-package magit
-    :init
-    (add-hook 'after-save-hook 'magit-after-save-refresh-status t))
 
-  (use-package diff-hl
+  ;; (use-package transient
+    ;; :straight t)
+  (straight-use-package
+    '(transient :type git :host github :repo "magit/transient"))
+
+  ;;   (use-package magit
+  ;;     :init
+  ;;     :straight t
+  ;;     :after transient
+  ;;     (add-hook 'after-save-hook 'magit-after-save-refresh-status t))
+
+  ;; 1. Load Transient first and force straight to manage it
+    ;; (use-package transient
+    ;; :straight t)
+
+    ;; 2. Load Magit
+    (use-package magit
+    :straight t
+    :after transient
     :config
-    (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
-    (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+    ;; Refresh magit status on save
+    (add-hook 'after-save-hook 'magit-after-save-refresh-status))
+    ;; (use-package diff-hl
+    ;;   :config
+    ;;   (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+    ;;   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+  (use-package diff-hl
+  :ensure t
+  :init
+  ;; 1. Enable the fringe UI
+  (global-diff-hl-mode)
+
+  ;; 2. Make it update in real-time (as you type), not just on save
+  (diff-hl-flydiff-mode)
+
+  :config
+  ;; 3. Enable the "VS Code like" clicking on fringe
+  (diff-hl-show-hunk-mouse-mode)
+
+  ;; Hook into Magit so things refresh automatically
+  (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
 #+end_src
 
 #+RESULTS:
@@ -1313,65 +1361,86 @@ a file in Dropbox. These functions allow easy access to that computer.
 ** Theme
 Here we change the basic look and feel. 
 #+begin_src emacs-lisp
-  (setq inhibit-splash-screen t
-	initial-scratch-message nil)
+    (setq inhibit-splash-screen t
+    	initial-scratch-message nil)
 
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
-  (add-to-list 'default-frame-alist '(fullscreen . fullheight))
+    ;; (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+    ;; (add-to-list 'default-frame-alist '(fullscreen . fullheight))
 
-  (setq mouse-wheel-scroll-amount '(2 ((shift) . 2)))
-  (setq mouse-wheel-progressive-speed nil)
-  (setq mouse-wheel-follow-mouse 't)
-  (setq scroll-step 1)
+    (setq mouse-wheel-scroll-amount '(2 ((shift) . 2)))
+    (setq mouse-wheel-progressive-speed nil)
+    (setq mouse-wheel-follow-mouse 't)
+    (setq scroll-step 1)
 
-  (global-set-key [mouse-3]
-    `(menu-item ,(purecopy "Menu Bar") ignore
-      :filter (lambda (_)
-	      (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
-		  (mouse-menu-bar-map)
-		(mouse-menu-major-mode-map)))))
+    (global-set-key [mouse-3]
+      `(menu-item ,(purecopy "Menu Bar") ignore
+        :filter (lambda (_)
+    	      (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
+    		  (mouse-menu-bar-map)
+    		(mouse-menu-major-mode-map)))))
 
-  (set-face-attribute 'default nil :height 140)
+    (set-face-attribute 'default nil :height 140)
 
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+    (tool-bar-mode -1)
 
   (use-package solarized-theme
-	     :init (progn (load-theme 'solarized-dark t)))
+    :straight t
+    :config
+    (load-theme 'solarized-dark t))
 
-  (use-package modern-fringes)
+    ;; (use-package solarized-theme
+    ;; 	     :init (progn (load-theme 'solarized-dark t)))
 
-  ;; ensure that files openned from operating system open a buffer in
-  ;; currently running emacs, and not in a new window
-  (setq ns-pop-up-frames nil)
+    (use-package modern-fringes)
 
-  ;; make shell commands work on OS X
-  (use-package exec-path-from-shell
-	     :config (when (memq window-system '(mac ns))
-		       (exec-path-from-shell-initialize)))
+    ;; ensure that files openned from operating system open a buffer in
+    ;; currently running emacs, and not in a new window
+    (setq ns-pop-up-frames nil)
 
-  (defalias 'yes-or-no-p 'y-or-n-p)
+    ;; make shell commands work on OS X
+    (use-package exec-path-from-shell
+    	     :config (when (memq window-system '(mac ns))
+    		       (exec-path-from-shell-initialize)))
 
-  (setq confirm-kill-emacs 'yes-or-no-p)
+    (defalias 'yes-or-no-p 'y-or-n-p)
 
-  ;; update buffer when file changes on disk
-  (global-auto-revert-mode t)
+    (setq confirm-kill-emacs 'yes-or-no-p)
 
-  (use-package smart-mode-line
-   :ensure t
-   :config
-   (setq sml/theme 'dark)
-   (setq rm-blacklist '(" Undo-Tree"
-		      " ivy"
-		      " counsel"
-		      " yas"
-		      " SP"
-		      " WK"
-		      " ElDoc"
-		      " Fly"
-		      " EvilOrg"
-		      " s-/"))
-   (add-hook 'after-init-hook 'sml/setup))
+    ;; update buffer when file changes on disk
+    (global-auto-revert-mode t)
+
+    ;; (use-package smart-mode-line
+    ;;  :ensure t
+    ;;  :config
+    ;;  (setq sml/theme 'dark)
+    ;;  (setq rm-blacklist '(" Undo-Tree"
+    ;; 		      " ivy"
+    ;; 		      " counsel"
+    ;; 		      " yas"
+    ;; 		      " SP"
+    ;; 		      " WK"
+    ;; 		      " ElDoc"
+    ;; 		      " Fly"
+    ;; 		      " EvilOrg"
+    ;; 		      " s-/"
+    ;; 		      " ivy-posframe"
+    ;; 		      " Fill"))
+    ;;  (add-hook 'after-init-hook 'sml/setup))
+
+  (use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1)
+  :config
+  (setq doom-modeline-height 25)      ; Set height
+  (setq doom-modeline-bar-width 3)   ; Thickness of the left bar
+  (setq doom-modeline-icon t)        ; Display icons
+  (setq doom-modeline-major-mode-icon t))
+
+  (use-package minions
+  :ensure t
+  :config
+  (minions-mode 1))
 #+end_src
 
 #+RESULTS:
