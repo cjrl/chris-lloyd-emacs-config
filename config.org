@@ -1,22 +1,42 @@
 * Chris Lloyd's Emacs Configuration
 ** Package Management
-Set up package management.
+Setup package management.
+
 #+begin_src emacs-lisp
-  (package-initialize)
-  (require 'package)
-  (setq package-enable-at-startup nil)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
-  (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+   (defvar bootstrap-version)
+   (let ((bootstrap-file
+  	   (expand-file-name
+  	   "straight/repos/straight.el/bootstrap.el"
+  	   (or (bound-and-true-p straight-base-dir)
+  	       user-emacs-directory)))
+       (bootstrap-version 7))
+   (unless (file-exists-p bootstrap-file)
+       (with-current-buffer
+  	   (url-retrieve-synchronously
+  	   "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+  	   'silent 'inhibit-cookies)
+       (goto-char (point-max))
+       (eval-print-last-sexp)))
+   (load bootstrap-file nil 'nomessage))
 
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
+  ;; (package-initialize)
+   (straight-use-package 'use-package)
+   (setq straight-use-package-by-default t)
 
-  (require 'use-package)
+   ;; (require 'package)
+   ;;(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+   ;;(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
 
-  (setq use-package-always-ensure t)
+    ;; (unless (package-installed-p 'use-package)
+    ;; 	(package-refresh-contents)
+    ;; 	(package-install 'use-package))
+
+   ;; (require 'use-package)
+   ;; (setq use-package-always-ensure t)
 #+end_src
+
+#+RESULTS:
+: t
 
 ** General Settings
 *** Customs File
@@ -43,12 +63,18 @@ Set the emacs backup to stop cluttering folders with backup files.
   (setq vc-make-backup-files t)
 #+end_src
 
+#+RESULTS:
+: t
+
 *** No Bell 
 Turn off both the bell sound and the visual indicator. 
 #+begin_src emacs-lisp
   (setq visible-bell       nil
 	ring-bell-function #'ignore)
 #+end_src
+
+#+RESULTS:
+: ignore
 
 ** UI
 *** Recentf
@@ -59,6 +85,9 @@ Builds a list of the recently opened files.
     :config
     (setq recentf-max-saved-items nil))
 #+end_src
+
+#+RESULTS:
+: t
 
 *** Ivy
 #+begin_src emacs-lisp
@@ -95,14 +124,14 @@ Builds a list of the recently opened files.
     :config)
 
   (use-package ace-popup-menu
-    :ensure t
+    :ensure 
     :config
     (ace-popup-menu-mode 1))
 
   (use-package ivy-posframe
     :config
     (ivy-posframe-mode)
-    (set-face-attribute 'ivy-posframe nil :background "DarkSlateBlue")
+    (set-face-attribute 'ivy-posframe nil :background "#073642")
     (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display))
 	  ivy-posframe-height-alist '((t . 5))
 	  ivy-posframe-parameters '((internal-border-width . 5))))
@@ -112,6 +141,9 @@ Builds a list of the recently opened files.
     (let ((info '(:internal-border-width 0 :background-color "DarkSlateBlue")))
       (or (plist-get info arg-name) value)))
 #+end_src
+
+#+RESULTS:
+: my-posframe-arghandler
 
 *** 
 
@@ -137,109 +169,120 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 : my-horizontal-recenter
 
 #+begin_src emacs-lisp
-  (split-window-horizontally)
-  (split-window-horizontally)
-  (balance-windows)
+  ;; (split-window-horizontally)
+  ;; (split-window-horizontally)
+  ;; (balance-windows)
 #+end_src
 
 #+RESULTS:
-: t
 
 *** Evil
 #+begin_src emacs-lisp
-  (use-package evil
-      :config
-      (setq evil-want-visual-char-semi-exclusive t)
-      (setq evil-want-fine-undo t)
-      (global-undo-tree-mode)
-      (evil-mode 1))
+    (setq evil-want-keybinding nil)
+    (use-package evil
+  	:config
+  	(setq evil-want-visual-char-semi-exclusive t)
+  	(setq evil-want-fine-undo t)
+  	;;(global-undo-tree-mode)
+  	(setq undo-tree-enable-undo-in-region nil)
+  	(evil-mode 1))
 
-  (use-package evil-smartparens)
+    (use-package evil-smartparens)
 
-  (use-package evil-magit)
+    ;; (use-package evil-magit)
 
-  (use-package evil-org
-      :ensure t
-      :after org
-      :config
-      (add-hook 'org-mode-hook 'evil-org-mode)
-      ;; (add-hook 'evil-org-mode-hook
-      ;; 	    (lambda ()
-      ;; 	    (evil-org-set-key-theme)))
-      (require 'evil-org-agenda)
-      (evil-org-agenda-set-keys))
+    (use-package evil-org
+  	:ensure t
+  	:after org
+  	:config
+  	(add-hook 'org-mode-hook 'evil-org-mode)
+  	;; (add-hook 'evil-org-mode-hook
+  	;; 	    (lambda ()
+  	;; 	    (evil-org-set-key-theme)))
+  	(require 'evil-org-agenda)
+  	(evil-org-agenda-set-keys))
 
-  (use-package evil-commentary
-      :config
-      (evil-commentary-mode))
+    (use-package evil-commentary
+  	:config
+  	(evil-commentary-mode))
 
-  (use-package evil-args
-      :init
-      (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
-      (define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
+  (use-package evil-collection)
+  (evil-collection-init 'magit)
 
-  (use-package key-chord
-      :config
-      (key-chord-mode 1)
-      (key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
-      (key-chord-define evil-replace-state-map  "jk" 'evil-normal-state)
-      (key-chord-define ivy-minibuffer-map  "jk" 'keyboard-escape-quit)
-      ;; (add-hook 'evil-lispy-mode-hook '(key-chord-define evil-lispy-mode-map  "jk" 'evil-normal-state))
-      (key-chord-define evil-visual-state-map  "jk" 'evil-normal-state))
+    (use-package evil-args
+  	:init
+  	(define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+  	(define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
 
-  (use-package evil-matchit)
+    (use-package key-chord
+  	:config
+  	(key-chord-mode 1)
+  	(key-chord-define evil-insert-state-map  "jk" 'evil-normal-state)
+  	(key-chord-define evil-replace-state-map  "jk" 'evil-normal-state)
+  	(key-chord-define ivy-minibuffer-map  "jk" 'keyboard-escape-quit)
+  	;; (add-hook 'evil-lispy-mode-hook '(key-chord-define evil-lispy-mode-map  "jk" 'evil-normal-state))
+  	(key-chord-define evil-visual-state-map  "jk" 'evil-normal-state))
+
+    (use-package evil-matchit)
 #+end_src
 
 #+RESULTS:
 
 *** Surrounds
 #+BEGIN_SRC emacs-lisp
-  (use-package smartparens-config
-	     :ensure smartparens
-	     :config
-	     (setq sp-max-pair-length 20)
-	     (sp-pair "\\left\\langle" "\\right\\rangle")
-	     (sp-pair "\\left(" "\\right)")
-	     (sp-pair "\\left\\{" "\\right\\}")
-	     (sp-pair "|" "|")
-	     (sp-pair "\\left|" "\\right|")
-	     (sp-pair "\\left\\langle" "\\right\\rangle")
-	     (sp-pair "\\left\\lceil" "\\right\\rceil")
-	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
-	     (smartparens-global-mode 1))
+   (use-package smartparens
+  	     :ensure smartparens
+  	     :config
+  	     (setq sp-max-pair-length 20)
+  	     (sp-pair "\\left\\langle" "\\right\\rangle")
+  	     (sp-pair "\\left(" "\\right)")
+  	     (sp-pair "\\left\\{" "\\right\\}")
+  	     ;; (sp-pair "|" "|")
+  	     (sp-pair "\\left|" "\\right|")
+  	     (sp-pair "\\left\\langle" "\\right\\rangle")
+  	     (sp-pair "\\left\\lceil" "\\right\\rceil")
+  	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
+  	     (smartparens-global-mode 1))
 
-  (use-package evil-surround
-    :ensure t
-    :config
-    (global-evil-surround-mode 1)
-  (evil-add-to-alist
-   'evil-surround-pairs-alist
-   ?\( '("(" . ")")
-   ?\[ '("[" . "]")
-   ?\{ '("{" . "}")
-   ?\) '("( " . " )")
-   ?\] '("[ " . " ]")
-   ?\} '("{ " . " }")))
+    (use-package evil-surround
+      :ensure t
+      :config
+      (global-evil-surround-mode 1)
+        (setq-default evil-surround-pairs-alist
+  	  '((?\( . ("(" . ")"))
+  	  (?\[ . ("[ " . " ]"))
+  	  (?\{ . ("{" . "}"))
+  	  (?\) . ("( " . " )"))
+  	  (?\] . ("[" . "]"))
+  	  (?\} . ("{ " . " }"))
+  	  (?# . ("#{" . "}"))
+  	  (?b . ("(" . ")"))
+  	  (?B . ("{" . "}"))
+  	  (?> . ("<" . ">"))
+  	  (?t . evil-surround-read-tag)
+  	  (?< . evil-surround-read-tag)
+  	  (?\C-f . evil-surround-prefix-function)
+  	  (?f . evil-surround-function))))
 
-  (use-package embrace
-   :ensure t
-   :config
-   (add-hook 'LaTeX-mode-hook (lambda ()
-     (embrace-add-pair ?e "\\begin{" "}")
-     (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
-     (embrace-add-pair ?m "\\(" "\\)")
-     (embrace-add-pair ?M "\\[" "\\]")
-     (embrace-add-pair ?l "\\left\(" "\\right\)")
-     (defun embrace-with-command ()
-     (let ((fname (read-string "Command: ")))
-       (cons (format "\\%s{" (or fname "")) "}")))
-     (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
-			    (embrace-build-help "\\command{" "}")))))
+    (use-package embrace
+     :ensure t
+     :config
+     (add-hook 'LaTeX-mode-hook (lambda ()
+       (embrace-add-pair ?e "\\begin{" "}")
+       (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
+       (embrace-add-pair ?m "\\(" "\\)")
+       (embrace-add-pair ?M "\\[" "\\]")
+       (embrace-add-pair ?l "\\left\(" "\\right\)")
+       (defun embrace-with-command ()
+       (let ((fname (read-string "Command: ")))
+         (cons (format "\\%s{" (or fname "")) "}")))
+       (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
+  			    (embrace-build-help "\\command{" "}")))))
 
-   (use-package evil-embrace
-    :init
-    (evil-embrace-enable-evil-surround-integration)
-    (setq evil-embrace-show-help-p nil))
+     (use-package evil-embrace
+      :init
+      (evil-embrace-enable-evil-surround-integration)
+      (setq evil-embrace-show-help-p nil))
 #+END_SRC
 
 #+RESULTS:
@@ -248,6 +291,8 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 #+begin_src emacs-lisp
   (use-package general)
+
+  ;; (define-key evil-insert-state-map (kbd "<escape>") nil)
 
   (general-define-key
    :keymaps 'normal
@@ -327,11 +372,12 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
     "c" 'compile)
 #+end_src
 
+#+RESULTS:
 
 *** LaTeX
 **** Setup
 #+begin_src emacs-lisp
-  (use-package tex
+  (use-package auctex
     :ensure auctex
     :init
     (add-hook 'LaTeX-mode-hook (lambda () (flycheck-select-checker 'tex-chktex)))
@@ -434,6 +480,9 @@ goto-label.
     (insert (concat "\\ref{" label "}"))))
 #+end_src
 
+#+RESULTS:
+: my-ref-label
+
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'LaTeX-mode-map
@@ -475,15 +524,18 @@ goto-label.
     (add-hook 'TeX-after-compilation-finished-functions
 	#'TeX-revert-document-buffer))
 #+end_src
+
+#+RESULTS:
+: t
+
 I wrote a small package called [[https://github.com/cjl8zf/evil-pdf-tools][evil-pdf-tools]] that adds vim style key
 bindings for navigating pdfs and also simulates the vim search for
 pdfs.
 #+begin_src emacs-lisp
-  (require 'evil-pdf-tools "~/.emacs.d/evil-pdf-tools-0.0.1.el")
+  ;; (require 'evil-pdf-tools "~/.emacs.d/evil-pdf-tools-0.0.1.el")
 #+end_src
 
 #+RESULTS:
-: t
 
 *** Sage
 **** Setup
@@ -511,6 +563,9 @@ pdfs.
     (shell-command "find . -name \"*.sage\" -print | etags -l \"python\" -"))
 #+END_SRC
 
+#+RESULTS:
+: generate-sage-tags
+
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'sage-shell:sage-mode-map
@@ -536,6 +591,8 @@ pdfs.
     :init
     (setq gap-executable "/Applications/gap/bin/gap.sh"))
 #+end_src
+
+#+RESULTS:
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -570,6 +627,8 @@ pdfs.
 	(evil-append-line nil)
 	(haskell-indentation-newline-and-indent))))
 #+end_src
+
+#+RESULTS:
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -650,12 +709,12 @@ pdfs.
   ;; (use-package org-mru-clock
   ;;   :config
   ;;     (setq org-mru-clock-completing-read #'ivy-completing-read))
-  (use-package org-drill
-    :ensure org-plus-contrib
-    :config
-    (setq org-drill-add-random-noise-to-intervals-p t))
+  ;; (use-package org-drill
+  ;;   :ensure org-plus-contrib
+  ;;   :config
+  ;;   (setq org-drill-add-random-noise-to-intervals-p t))
 
-  (use-package org-edit-latex)
+  ;; (use-pa ckage org-edit-latex)
 
   (defun my-org-hide-current-body ()
     "Hide body of current heading and go to heading."
@@ -691,33 +750,6 @@ pdfs.
 #+RESULTS:
 : my-evil-org-insert-subheading
 
-#+begin_src emacs-lisp
-  (use-package org-roam
-    :ensure t
-    :hook
-    (after-init . org-roam-mode)
-    :custom
-    (org-roam-directory "~/org/")
-    (server-start)
-    (require 'org-protocol)
-    (require 'org-roam-protocol))
-
-  (use-package org-roam-server
-    :ensure t
-    :config
-    (setq org-roam-server-host "127.0.0.1"
-	  org-roam-server-port 8080
-	  org-roam-server-authenticate nil
-	  org-roam-server-export-inline-images t
-	  org-roam-server-serve-files nil
-	  org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
-	  org-roam-server-network-poll t
-	  org-roam-server-network-arrows nil
-	  org-roam-server-network-label-truncate t
-	  org-roam-server-network-label-truncate-length 60
-	  org-roam-server-network-label-wrap-length 20))
-#+end_src
-
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'org-mode-map
@@ -738,6 +770,8 @@ pdfs.
     "ri" 'org-roam-insert
     "cb" 'org-babel-execute-src-block)
 
+    (setq org-confirm-babel-evaluate nil)
+  
   (general-define-key
    :states 'normal
    :keymaps 'org-mode-map
@@ -772,12 +806,200 @@ pdfs.
 
 #+RESULTS:
 
+*** Lean 4
+#+BEGIN_SRC emacs-lisp
+      (setq straight-built-in-pseudo-packages '(emacs xref nadvice python image-mode project flymake))
+      (use-package lean4-mode
+	:commands lean4-mode
+	:straight (lean4-mode :type git :host github
+			    :repo "leanprover-community/lean4-mode"
+			    :files ("*.el" "data")))
+
+  ;; (use-package nael
+  ;;   :straight (:host codeberg 
+  ;;              :repo "mekeor/nael"
+  ;;              :files (:defaults (:exclude "build.el"))))
+   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael")
+   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael-lsp")
+   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael-markdown")
+   ;; (require 'nael)
+   ;; (require 'nael-lsp)
+   ;; (require 'nael-markdown)
+   ;; (add-hook 'nael-mode-hook #'abbrev-mode)
+   ;; (add-hook 'nael-mode-hook #'eglot-ensure)
+
+    (add-hook 'lean4-mode-hook #'lsp)   ;; for Lean 4
+
+    (defun lean-toggle-check ()
+      (interactive)
+      (save-excursion
+	(beginning-of-line)
+	(cond
+	 ;; #check → remove
+	 ((looking-at "^#check\\(\\s-+\\)?")
+	  (replace-match ""))
+	 ;; #eval → replace with #check
+	 ((looking-at "^#eval\\(\\s-+\\)?")
+	  (replace-match "#check "))
+	 ;; other → insert #check
+	 (t
+	  (insert "#check ")))))
+
+    (defun lean-toggle-eval ()
+      (interactive)
+      (save-excursion
+	(beginning-of-line)
+	(cond
+	 ;; #eval → remove
+	 ((looking-at "^#eval\\(\\s-+\\)?")
+	  (replace-match ""))
+	 ;; #check → replace with #eval
+	 ((looking-at "^#check\\(\\s-+\\)?")
+	  (replace-match "#eval "))
+	 ;; other → insert #eval
+	 (t
+	  (insert "#eval ")))))
+#+END_SRC
+
+#+RESULTS:
+: lean-toggle-eval
+
+**** Keybindings
+#+begin_src emacs-lisp
+  (my-leader-def 'lean4-mode-map
+    "l c" 'lean-toggle-check
+    "l e" 'lean-toggle-eval
+    "l l" 'lean4-toggle-info
+    "?" 'lsp-ui-doc-mode)
+#+end_src
+
+#+RESULTS:
+
+**** `jk` normal mode fix 
+
+Lean4-mode uses quail to replace LaTeX-like symbols \alpha with the
+unicode equivalents. This interferes with key-chored mode which also
+uses quail under the hood. This function adds jk directly to the quail
+map in lean4-mode so that jk keeps working. 
+
+#+begin_src emacs-lisp :lexical t 
+	 (defun quail-jk (key idx) 
+	   (let ((curpos (point)))
+	     (quail-delete-region)
+	     (evil-normal-state)
+	     (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
+	     (throw 'quail-tag nil))
+	   )
+
+	(defun my-ensure-key-chord-wins ()
+	"Force key-chord to be the primary input-method-function."
+	(when (derived-mode-p 'lean4-mode)
+	    (setq-local input-method-function #'key-chord-input-method)))
+
+
+ 
+	;; (defun ensure-key-chord-wins ()
+	;; "Force key-chord to be the primary input-method-function."
+	;; (when (derived-mode-p 'lean4-mode)
+	;; 	  (setq-local input-method-function #'key-chord-input-method)))
+
+	;; (add-hook 'post-command-hook #'ensure-key-chord-wins nil t)
+	;; 	      (add-hook 'lean4-mode-hook (lambda ()
+	;; 		  (setq lsp-inlay-hint-enable nil)
+	;; 		  (setq lsp-warn-no-matched-method nil)
+	    ;; (quail-define-rules ((append . t)) ("jk" quail-jk))
+    (defun my-lean-key-chord-fix ()
+    "Force key-chord to take over input-method-function in Lean."
+    ;; We use a tiny delay to ensure Lean's own input-method setup is finished
+    (run-with-idle-timer 0.1 nil
+			(lambda ()
+			    (add-hook 'post-command-hook #'my-ensure-key-chord-wins nil t)
+			    (when (derived-mode-p 'lean4-mode)
+			    (key-chord-mode -1) ; Toggle off
+			    (key-chord-mode 1))))) ; Toggle on to seize control
+
+    (add-hook 'lean4-mode-hook #'my-lean-key-chord-fix)
+
+  ;; ))
+#+end_src
+
+**** Better Unicode Lean Symbol Completion
+
+We create a custom company-mode backend for lean symbol completion. 
+
+#+begin_src emacs-lisp :lexical t 
+  (require 'json)
+
+  (setq my-lean-symbols
+	(let ((json-file-path (expand-file-name "lean-symbols.json" user-emacs-directory)))
+	  (when (file-exists-p json-file-path)
+	    (with-temp-buffer
+	      (insert-file-contents json-file-path)
+	      (goto-char (point-min))
+	      ;; In json-parse-buffer, 'alist' usually forces keys to symbols.
+	      ;; We'll parse it and then ensure keys are strings if they aren't already.
+	      (let ((raw-data (json-parse-buffer :object-type 'alist)))
+		(mapcar (lambda (pair)
+			  (cons (format "%s" (car pair)) (cdr pair)))
+			raw-data))))))
+
+    (defun company-my-lean-symbols (command &optional arg &rest _ignored)
+    (interactive (list 'interactive))
+    (cl-case command
+	(interactive (company-begin-backend 'company-my-lean-symbols))
+	;; 1. Grab everything including the backslash
+	(prefix (company-grab-symbol-cons "[^[:space:]]+" 0))
+	(candidates
+	(let ((query (string-remove-prefix "\\" arg)))
+	(cl-loop for (trigger . symbol) in my-lean-symbols
+		    if (string-prefix-p query trigger)
+		    collect trigger)))
+	(annotation
+	(concat " " (cdr (assoc arg my-lean-symbols))))
+	(post-completion
+	(let ((symbol (cdr (assoc arg my-lean-symbols))))
+	(when symbol
+	    ;; 2. Logic to "gobble" the backslash if it exists
+	    (let* ((end (point))
+		    (start (- end (length arg)))
+		    ;; Check if the character right before our match is a backslash
+		    (maybe-backslash (char-before start)))
+	    (if (eq maybe-backslash ?\\)
+		(delete-region (1- start) end)
+		(delete-region start end))
+	    (insert symbol)))))))
+
+    (add-hook 'lean4-mode-hook
+	    (lambda ()
+
+		(setq-local company-backends 
+		'((company-my-lean-symbols
+		    company-dabbrev 
+		    company-dabbrev-code 
+		    company-files 
+		    company-capf 
+		    company-keywords
+		    company-semantic
+		company-clang)))
+
+		;; (add-to-list 'company-backends '(company-my-lean-symbols company-capf))
+		;; Optional: start completing after just 1 character
+		(setq-local company-minimum-prefix-length 1)) 90)
+
+#+end_src
+
+#+RESULTS:
+| (lambda nil (set (make-local-variable 'company-backends) '((company-my-lean-symbols company-dabbrev company-dabbrev-code company-files company-capf company-keywords company-semantic company-clang))) (set (make-local-variable 'company-minimum-prefix-length) 1)) | my-lean-key-chord-fix | lsp | (closure (t) nil (setq-local company-backends '((company-my-lean-symbols company-dabbrev company-dabbrev-code company-files company-capf company-keywords company-semantic company-clang))) (setq-local company-minimum-prefix-length 1)) |
+
 ** Documentation
 We will use helm together with helm-dash to view documentation in
 emacs.
 #+begin_src emacs-lisp
   (setq helm-dash-common-docsets '("Python 2" "Haskell" "Sage" "Emacs Lisp"))
 #+end_src
+
+#+RESULTS:
+| Python 2 | Haskell | Sage | Emacs Lisp |
 
 
 We will display the documentation in the eww web-browser in emacs.
@@ -801,6 +1023,10 @@ possible otherwise split vertically.
 	display-buffer-alist)
 #+end_src
 
+#+RESULTS:
+| \*eww\* | (eww-display+) |
+| \*eww\* | (eww-display+) |
+
 ** Completions
 *** Yasnippet
 #+begin_src emacs-lisp
@@ -818,6 +1044,8 @@ possible otherwise split vertically.
   (use-package yasnippet-snippets
     :ensure t)
 #+end_src
+
+#+RESULTS:
 
 *** Hippie Expand
 #+begin_src emacs-lisp
@@ -863,6 +1091,9 @@ possible otherwise split vertically.
 	  try-complete-lisp-symbol))
 #+end_src
 
+#+RESULTS:
+| try-expand-dabbrev | try-expand-dabbrev-all-buffers | try-expand-dabbrev-from-kill | try-complete-file-name-partially | try-complete-file-name | try-expand-all-abbrevs | try-expand-list | try-expand-line | try-complete-lisp-symbol-partially | try-complete-lisp-symbol |
+
 ** Writing
 *** Spell-check
 I use flyspell together with a nice [[https://emacs.stackexchange.com/questions/14909/how-to-use-flyspell-to-efficiently-correct-previous-word][function]] by Mark Karpov that
@@ -870,7 +1101,8 @@ opens the suggestion in a pop-up menu.
 #+begin_src emacs-lisp
   (use-package flyspell
     :config
-    (setq ispell-program-name "/opt/local/bin/aspell")
+    ;; (setq ispell-program-name "/opt/local/bin/aspell")
+    (setq ispell-program-name "/usr/bin/aspell")
     (flyspell-mode 1)
     (defun mk-flyspell-correct-previous (&optional words)
       "Correct word before point, reach distant words.
@@ -910,28 +1142,73 @@ opens the suggestion in a pop-up menu.
     (setq langtool-java-bin "/usr/bin/java")
     (setq langtool-language-tool-jar "/Applications/LanguageTool/languagetool-commandline.jar"))
 #+end_src
+
+#+RESULTS:
+: t
+
 I wrote a package called [[https://github.com/cjl8zf/langtool-ignore-fonts][langtool-ignore-fonts]] that extends the
 langtool package to ignore specified fonts. I use this to ignore the
 LaTeX markup when checking syntax. 
 #+begin_src emacs-lisp
-(use-package langtool-ignore-fonts
-  :load-path "~/.emacs.d/elpa/"
-  :config 
-  (add-hook 'markdown-mode-hook (lambda () 
-				  (setq-local langtool-ignore-fonts '(markdown-code-face)))))
+  ;; (use-package langtool-ignore-fonts
+  ;;   :load-path "~/.emacs.d/elpa/"
+  ;;   :config 
+  ;;   (add-hook 'markdown-mode-hook (lambda () 
+  ;; 				  (setq-local langtool-ignore-fonts '(markdown-code-face)))))
 #+end_src
+
+#+RESULTS:
 
 ** Project Management
 #+begin_src emacs-lisp
-  (use-package magit
-    :init
-    (add-hook 'after-save-hook 'magit-after-save-refresh-status t))
 
-  (use-package diff-hl
+  ;; (use-package transient
+    ;; :straight t)
+  (straight-use-package
+    '(transient :type git :host github :repo "magit/transient"))
+
+  ;;   (use-package magit
+  ;;     :init
+  ;;     :straight t
+  ;;     :after transient
+  ;;     (add-hook 'after-save-hook 'magit-after-save-refresh-status t))
+
+  ;; 1. Load Transient first and force straight to manage it
+    ;; (use-package transient
+    ;; :straight t)
+
+    ;; 2. Load Magit
+    (use-package magit
+    :straight t
+    :after transient
     :config
-    (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
-    (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+    ;; Refresh magit status on save
+    (add-hook 'after-save-hook 'magit-after-save-refresh-status))
+    ;; (use-package diff-hl
+    ;;   :config
+    ;;   (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+    ;;   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+  (use-package diff-hl
+  :ensure t
+  :init
+  ;; 1. Enable the fringe UI
+  (global-diff-hl-mode)
+
+  ;; 2. Make it update in real-time (as you type), not just on save
+  (diff-hl-flydiff-mode)
+
+  :config
+  ;; 3. Enable the "VS Code like" clicking on fringe
+  (diff-hl-show-hunk-mouse-mode)
+
+  ;; Hook into Magit so things refresh automatically
+  (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
 #+end_src
+
+#+RESULTS:
+: t
+
 #+begin_src emacs-lisp
   (use-package skeletor
     :config
@@ -987,6 +1264,9 @@ a file in Dropbox. These functions allow easy access to that computer.
       (buffer-string)))
 #+end_src
 
+#+RESULTS:
+: get-string-from-file
+
 ** Programming
 *** Syntax
 #+BEGIN_SRC emacs-lisp
@@ -1005,6 +1285,8 @@ a file in Dropbox. These functions allow easy access to that computer.
     (add-to-list 'flycheck-checkers 'proselint))
 #+END_SRC
 
+#+RESULTS:
+
 #+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent
   :config
@@ -1012,10 +1294,40 @@ a file in Dropbox. These functions allow easy access to that computer.
 #+END_SRC
 
 #+RESULTS:
+: t
 
 *** Ctags
 #+BEGIN_SRC emacs-lisp
   (use-package ctags-update)
+#+END_SRC
+
+#+RESULTS:
+
+*** Company
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :custom
+    (setq company-idle-delay 0)
+    (add-to-list 'company-backends 'company-elisp)
+    (global-company-mode))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+#+END_SRC
+
+*** Language Server Protocol
+
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :after company
+    :custom
+    (lsp-inlay-hint-enable nil)
+    (lsp-completion-provider t)
+    :config
+    (add-to-list 'warning-suppress-log-types '(lsp-mode))
+    (add-to-list 'warning-suppress-types '(lsp-mode)))
+
+  (use-package lsp-ui)
 #+END_SRC
 
 #+RESULTS:
@@ -1032,26 +1344,6 @@ a file in Dropbox. These functions allow easy access to that computer.
 
 #+RESULTS:
 
-** Email
-#+begin_src emacs-lisp
-  (require 'mu4e)
-
-  (setq mail-user-agent 'mu4e-user-agent)
-
-  (setq mu4e-drafts-folder "/[Gmail].Drafts")
-  (setq mu4e-sent-folder   "/[Gmail].Sent Mail")
-  (setq mu4e-trash-folder  "/[Gmail].Trash")
-
-  (setq mu4e-sent-messages-behavior 'delete)
-
-  (setq mu4e-get-mail-command "offlineimap")
-  (setq mu4e~get-mail-password-regexp "^Password:")
-
-  (setq mu4e-completing-read-function 'ivy-completing-read)
-  (setq mu4e-compose-format-flowed t)
-#+end_src
-
-
 *** Keybindings
 #+begin_src emacs-lisp
   (general-define-key
@@ -1063,70 +1355,92 @@ a file in Dropbox. These functions allow easy access to that computer.
    :keymaps 'mu4e-view-mode-map
    "g" 'ace-link-mu4e)
 #+end_src
+
+#+RESULTS:
+
 ** Theme
 Here we change the basic look and feel. 
 #+begin_src emacs-lisp
-  (setq inhibit-splash-screen t
-	initial-scratch-message nil)
+    (setq inhibit-splash-screen t
+    	initial-scratch-message nil)
 
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
-  (add-to-list 'default-frame-alist '(fullscreen . fullheight))
+    ;; (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+    ;; (add-to-list 'default-frame-alist '(fullscreen . fullheight))
 
-  (setq mouse-wheel-scroll-amount '(2 ((shift) . 2)))
-  (setq mouse-wheel-progressive-speed nil)
-  (setq mouse-wheel-follow-mouse 't)
-  (setq scroll-step 1)
+    (setq mouse-wheel-scroll-amount '(2 ((shift) . 2)))
+    (setq mouse-wheel-progressive-speed nil)
+    (setq mouse-wheel-follow-mouse 't)
+    (setq scroll-step 1)
 
-  (global-set-key [mouse-3]
-		  `(menu-item ,(purecopy "Menu Bar") ignore
-			      :filter (lambda (_)
-					(if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
-					    (mouse-menu-bar-map)
-					  (mouse-menu-major-mode-map)))))
+    (global-set-key [mouse-3]
+      `(menu-item ,(purecopy "Menu Bar") ignore
+        :filter (lambda (_)
+    	      (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
+    		  (mouse-menu-bar-map)
+    		(mouse-menu-major-mode-map)))))
 
-  (set-face-attribute 'default nil :height 180)
+    (set-face-attribute 'default nil :height 140)
 
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+    (tool-bar-mode -1)
 
-  (use-package sublime-themes
-    :init
-    (progn (load-theme 'spolsky t)))
-
-  (use-package modern-fringes)
-
-  ;; ensure that files openned from operating system open a buffer in
-  ;; currently running emacs, and not in a new window
-  (setq ns-pop-up-frames nil)
-
-  ;; make shell commands work on OS X
-  (use-package exec-path-from-shell
+  (use-package solarized-theme
+    :straight t
     :config
-    (when (memq window-system '(mac ns))
-      (exec-path-from-shell-initialize)))
+    (load-theme 'solarized-dark t))
 
-  (defalias 'yes-or-no-p 'y-or-n-p)
+    ;; (use-package solarized-theme
+    ;; 	     :init (progn (load-theme 'solarized-dark t)))
 
-  (setq confirm-kill-emacs 'yes-or-no-p)
+    (use-package modern-fringes)
 
-  ;; update buffer when file changes on disk
-  (global-auto-revert-mode t)
+    ;; ensure that files openned from operating system open a buffer in
+    ;; currently running emacs, and not in a new window
+    (setq ns-pop-up-frames nil)
 
-  (use-package smart-mode-line
-    :ensure t
-    :config
-    (setq sml/theme 'dark)
-    (setq rm-blacklist '(" Undo-Tree"
-			 " ivy"
-			 " counsel"
-			 " yas"
-			 " SP"
-			 " WK"
-			 " ElDoc"
-			 " Fly"
-			 " EvilOrg"
-			 " s-/"))
-    (add-hook 'after-init-hook 'sml/setup))
+    ;; make shell commands work on OS X
+    (use-package exec-path-from-shell
+    	     :config (when (memq window-system '(mac ns))
+    		       (exec-path-from-shell-initialize)))
+
+    (defalias 'yes-or-no-p 'y-or-n-p)
+
+    (setq confirm-kill-emacs 'yes-or-no-p)
+
+    ;; update buffer when file changes on disk
+    (global-auto-revert-mode t)
+
+    ;; (use-package smart-mode-line
+    ;;  :ensure t
+    ;;  :config
+    ;;  (setq sml/theme 'dark)
+    ;;  (setq rm-blacklist '(" Undo-Tree"
+    ;; 		      " ivy"
+    ;; 		      " counsel"
+    ;; 		      " yas"
+    ;; 		      " SP"
+    ;; 		      " WK"
+    ;; 		      " ElDoc"
+    ;; 		      " Fly"
+    ;; 		      " EvilOrg"
+    ;; 		      " s-/"
+    ;; 		      " ivy-posframe"
+    ;; 		      " Fill"))
+    ;;  (add-hook 'after-init-hook 'sml/setup))
+
+  (use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1)
+  :config
+  (setq doom-modeline-height 25)      ; Set height
+  (setq doom-modeline-bar-width 3)   ; Thickness of the left bar
+  (setq doom-modeline-icon t)        ; Display icons
+  (setq doom-modeline-major-mode-icon t))
+
+  (use-package minions
+  :ensure t
+  :config
+  (minions-mode 1))
 #+end_src
 
 #+RESULTS:
