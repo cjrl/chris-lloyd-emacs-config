@@ -19,3 +19,4 @@
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode -1))
 (setq package-enable-at-startup nil)
+;; (setenv "LSP_USE_PLISTS" "true")
