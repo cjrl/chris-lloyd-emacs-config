@@ -110,77 +110,77 @@
 
 ;; (setq lean4-extra-arguments '("-M" "24000" "-j" "12"))
 
-  (with-eval-after-load 'lean4-mode
-    ;; Increase Lean server memory limits
-    ;; Lean uses LEAN_MEMORY environment variable (in MB)
-    ;; (setenv "LEAN_MEMORY" "8192") ; 8GB for Lean server
-    
-    ;; Number of parallel worker threads (use more on powerful machines)
-    ;; (setenv "LEAN_THREADS" "8") ; Adjust based on your CPU cores
+(with-eval-after-load 'lean4-mode
+  ;; Increase Lean server memory limits
+  ;; Lean uses LEAN_MEMORY environment variable (in MB)
+  ;; (setenv "LEAN_MEMORY" "8192") ; 8GB for Lean server
+  
+  ;; Number of parallel worker threads (use more on powerful machines)
+  ;; (setenv "LEAN_THREADS" "8") ; Adjust based on your CPU cores
 
-    ;; (setenv "LEAN_MEMORY" "16000")  ;; 16GB in MB
-    ;; (setenv "LEAN_THREADS" "8"))
-    (setq lean4-memory-limit 24000)
-    
-    ;; Aggressive info buffer updates
-    ;; (setq lean4-info-window-height-fraction 0.3)
-    ;; (setq lean4-idle-delay 0.1) ; Update goal buffer very quickly
-    
-    ;; Enable all Lean4 features
-    ;; (setq lean4-show-lake-env-when-opening-files t)
-    
-    ;; Increase typeinfo delay
-    ;; (setq lean4-typeinfo-delay 0.1) ; Show type info quickly
-    
-    ;; LSP settings specific to Lean4
-    (setq lsp-lean4-lake-env-timeout 60) ; Give lake more time
-    (setq lsp-lean4-server-log-level "warning") ; Reduce logging overhead
-    )
+  ;; (setenv "LEAN_MEMORY" "16000")  ;; 16GB in MB
+  ;; (setenv "LEAN_THREADS" "8"))
+  (setq lean4-memory-limit 24000)
+  
+  ;; Aggressive info buffer updates
+  ;; (setq lean4-info-window-height-fraction 0.3)
+  ;; (setq lean4-idle-delay 0.1) ; Update goal buffer very quickly
+  
+  ;; Enable all Lean4 features
+  ;; (setq lean4-show-lake-env-when-opening-files t)
+  
+  ;; Increase typeinfo delay
+  ;; (setq lean4-typeinfo-delay 0.1) ; Show type info quickly
+  
+  ;; LSP settings specific to Lean4
+  (setq lsp-lean4-lake-env-timeout 60) ; Give lake more time
+  (setq lsp-lean4-server-log-level "warning") ; Reduce logging overhead
+  )
 
 ;;; ============================================================================
 ;;; COMPANY-MODE PERFORMANCE SETTINGS
 ;;; ============================================================================
 
-  (with-eval-after-load 'company
-    ;; Aggressive completion settings
-    (setq company-minimum-prefix-length 2) ; Start completing after 1 char
-    ;; (setq company-idle-delay 0.0) ; Show completions immediately
-    ;; (setq company-tooltip-idle-delay 0.0) ; Show tooltip immediately
-    
-    ;; Increase candidate limits
-    ;; (setq company-tooltip-limit 5) ; Show more candidates
-    ;; (setq company-candidates-length 1000) ; Cache more candidates
-    
-    ;; Performance optimizations
-    (setq company-async-timeout 10) ; Give async backends more time
-    (setq company-async-wait 0.1)
-    
-    ;; Better completion experience
-    (setq company-tooltip-align-annotations t)
-    (setq company-require-match nil)
-    (setq company-selection-wrap-around t)
-    
-    ;; Transformers for better sorting
-    ;; (setq company-transformers '(company-sort-by-occurrence
-    ;; 				 company-sort-by-backend-importance))
-    
-    ;; Make company faster by disabling some features if needed
-    ;; (setq company-dabbrev-downcase nil)
-    ;; (setq company-dabbrev-ignore-case t)
-    )
+(with-eval-after-load 'company
+  ;; Aggressive completion settings
+  (setq company-minimum-prefix-length 2) ; Start completing after 1 char
+  ;; (setq company-idle-delay 0.0) ; Show completions immediately
+  ;; (setq company-tooltip-idle-delay 0.0) ; Show tooltip immediately
+  
+  ;; Increase candidate limits
+  ;; (setq company-tooltip-limit 5) ; Show more candidates
+  ;; (setq company-candidates-length 1000) ; Cache more candidates
+  
+  ;; Performance optimizations
+  (setq company-async-timeout 10) ; Give async backends more time
+  (setq company-async-wait 0.1)
+  
+  ;; Better completion experience
+  (setq company-tooltip-align-annotations t)
+  (setq company-require-match nil)
+  (setq company-selection-wrap-around t)
+  
+  ;; Transformers for better sorting
+  (setq company-transformers '(company-sort-by-occurrence
+			       company-sort-by-backend-importance))
+  
+  ;; Make company faster by disabling some features if needed
+  ;; (setq company-dabbrev-downcase nil)
+  ;; (setq company-dabbrev-ignore-case t)
+  )
 
 ;;; ============================================================================
 ;;; FLYCHECK PERFORMANCE (if using)
 ;;; ============================================================================
 
-  (with-eval-after-load 'flycheck
-    ;; Aggressive checking
-    (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change))
-    (setq flycheck-idle-change-delay 2) ; Check after 0.5s of idle
-    (setq flycheck-idle-buffer-switch-delay 2)
-    
-    ;; Display errors faster
-    (setq flycheck-display-errors-delay 2))
+(with-eval-after-load 'flycheck
+  ;; Aggressive checking
+  (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change))
+  (setq flycheck-idle-change-delay 2) ; Check after 0.5s of idle
+  (setq flycheck-idle-buffer-switch-delay 2)
+  
+  ;; Display errors faster
+  (setq flycheck-display-errors-delay 2))
 
 ;;; ============================================================================
 ;;; ADDITIONAL EMACS OPTIMIZATIONS

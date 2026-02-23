@@ -220,7 +220,7 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 
 *** Surrounds
 #+BEGIN_SRC emacs-lisp
-   (use-package smartparens
+  (use-package smartparens
   	     :ensure smartparens
   	     :config
   	     (setq sp-max-pair-length 20)
@@ -232,13 +232,15 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
   	     (sp-pair "\\left\\langle" "\\right\\rangle")
   	     (sp-pair "\\left\\lceil" "\\right\\rceil")
   	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
+  	     (sp-pair  "⟨" "⟩" )
+  	     (sp-local-pair 'lean4-mode "⟨" "⟩" :trigger "⟨")
   	     (smartparens-global-mode 1))
 
-    (use-package evil-surround
-      :ensure t
-      :config
-      (global-evil-surround-mode 1)
-        (setq-default evil-surround-pairs-alist
+   (use-package evil-surround
+     :ensure t
+     :config
+     (global-evil-surround-mode 1)
+       (setq-default evil-surround-pairs-alist
   	  '((?\( . ("(" . ")"))
   	  (?\[ . ("[ " . " ]"))
   	  (?\{ . ("{" . "}"))
@@ -249,30 +251,32 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
   	  (?b . ("(" . ")"))
   	  (?B . ("{" . "}"))
   	  (?> . ("<" . ">"))
+  	  (?\<  "⟨" "⟩" )
   	  (?t . evil-surround-read-tag)
   	  (?< . evil-surround-read-tag)
   	  (?\C-f . evil-surround-prefix-function)
   	  (?f . evil-surround-function))))
 
-    (use-package embrace
-     :ensure t
-     :config
-     (add-hook 'LaTeX-mode-hook (lambda ()
-       (embrace-add-pair ?e "\\begin{" "}")
-       (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
-       (embrace-add-pair ?m "\\(" "\\)")
-       (embrace-add-pair ?M "\\[" "\\]")
-       (embrace-add-pair ?l "\\left\(" "\\right\)")
-       (defun embrace-with-command ()
-       (let ((fname (read-string "Command: ")))
-         (cons (format "\\%s{" (or fname "")) "}")))
-       (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
+   (use-package embrace
+    :ensure t
+    :config
+    (add-hook 'lean4-mode (lambda () (embrace-add-pair ?\<  "⟨" "⟩" )))
+    (add-hook 'LaTeX-mode-hook (lambda ()
+      (embrace-add-pair ?e "\\begin{" "}")
+      (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
+      (embrace-add-pair ?m "\\(" "\\)")
+      (embrace-add-pair ?M "\\[" "\\]")
+      (embrace-add-pair ?l "\\left\(" "\\right\)")
+      (defun embrace-with-command ()
+      (let ((fname (read-string "Command: ")))
+        (cons (format "\\%s{" (or fname "")) "}")))
+      (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
   			    (embrace-build-help "\\command{" "}")))))
 
-     (use-package evil-embrace
-      :init
-      (evil-embrace-enable-evil-surround-integration)
-      (setq evil-embrace-show-help-p nil))
+    (use-package evil-embrace
+     :init
+     (evil-embrace-enable-evil-surround-integration)
+     (setq evil-embrace-show-help-p nil))
 #+END_SRC
 
 *** Global Keybindings
@@ -742,7 +746,10 @@ pdfs.
   (use-package lean4-mode
     :commands lean4-mode
     :straight (lean4-mode :type git :host github
-  			:repo "ultronozm/lean4-mode"
+  			;; :repo "ultronozm/lean4-mode"
+  	             	  :branch "copilot/fix-truncated-flymake-messages"	
+  			;; :branch "copilot/add-double-checkmark-lean4-mode"	
+  			:repo "ghseeli/lean4-mode"		
   			:files ("*.el" "data"))
     :config
     (setq lean4-info-plain nil))
@@ -780,7 +787,7 @@ pdfs.
   (use-package eldoc-box
     :config
     (eldoc-box-hover-at-point-mode 1))
-  
+
     (add-hook 'lean4-mode-hook #'eldoc-box-hover-at-point-mode)
 
 #+END_SRC
@@ -847,230 +854,237 @@ map in lean4-mode so that jk keeps working.
 We create a custom company-mode backend for lean symbol completion. 
 
 #+begin_src emacs-lisp :lexical t 
-    (require 'json)
+      (require 'json)
 
-    (setq my-lean-symbols
-          (let ((json-file-path (expand-file-name "lean-symbols.json" user-emacs-directory)))
-          	(when (file-exists-p json-file-path)
-          	  (with-temp-buffer
-          	    (insert-file-contents json-file-path)
-          	    (goto-char (point-min))
-          	    ;; In json-parse-buffer, 'alist' usually forces keys to symbols.
-          	    ;; We'll parse it and then ensure keys are strings if they aren't already.
-          	    (let ((raw-data (json-parse-buffer :object-type 'alist)))
-          	      (mapcar (lambda (pair)
-          			(cons (format "%s" (car pair)) (cdr pair)))
-          		      raw-data))))))
+      (setq my-lean-symbols
+            (let ((json-file-path (expand-file-name "lean-symbols.json" user-emacs-directory)))
+            	(when (file-exists-p json-file-path)
+            	  (with-temp-buffer
+            	    (insert-file-contents json-file-path)
+            	    (goto-char (point-min))
+            	    ;; In json-parse-buffer, 'alist' usually forces keys to symbols.
+            	    ;; We'll parse it and then ensure keys are strings if they aren't already.
+            	    (let ((raw-data (json-parse-buffer :object-type 'alist)))
+            	      (mapcar (lambda (pair)
+            			(cons (format "%s" (car pair)) (cdr pair)))
+            		      raw-data))))))
 
-    ;; (defun company-my-lean-symbols (command &optional arg &rest _ignored)
-    ;; (interactive (list 'interactive))
-    ;; (cl-case command
-    ;; 	(interactive (company-begin-backend 'company-my-lean-symbols))
-    ;; 	;; 1. Grab everything including the backslash
-    ;; 	(prefix (company-grab-symbol-cons "[^[:space:]]+" 0))
-    ;; 	(candidates
-    ;; 	(let ((query (string-remove-prefix "\\" arg)))
-    ;; 	(cl-loop for (trigger . symbol) in my-lean-symbols
-    ;; 		    if (string-prefix-p query trigger)
-    ;; 		    collect trigger)))
-    ;; 	(annotation
-    ;; 	(concat " " (cdr (assoc arg my-lean-symbols))))
-    ;; 	(post-completion
-    ;; 	(let ((symbol (cdr (assoc arg my-lean-symbols))))
-    ;; 	(when symbol
-    ;; 	    ;; 2. Logic to "gobble" the backslash if it exists
-    ;; 	    (let* ((end (point))
-    ;; 		    (start (- end (length arg)))
-    ;; 		    ;; Check if the character right before our match is a backslash
-    ;; 		    (maybe-backslash (char-before start)))
-    ;; 	    (if (eq maybe-backslash ?\\)
-    ;; 		(delete-region (1- start) end)
-    ;; 		(delete-region start end))
-    ;; 	    (insert symbol)))))))
+      ;; (defun company-my-lean-symbols (command &optional arg &rest _ignored)
+      ;; (interactive (list 'interactive))
+      ;; (cl-case command
+      ;; 	(interactive (company-begin-backend 'company-my-lean-symbols))
+      ;; 	;; 1. Grab everything including the backslash
+      ;; 	(prefix (company-grab-symbol-cons "[^[:space:]]+" 0))
+      ;; 	(candidates
+      ;; 	(let ((query (string-remove-prefix "\\" arg)))
+      ;; 	(cl-loop for (trigger . symbol) in my-lean-symbols
+      ;; 		    if (string-prefix-p query trigger)
+      ;; 		    collect trigger)))
+      ;; 	(annotation
+      ;; 	(concat " " (cdr (assoc arg my-lean-symbols))))
+      ;; 	(post-completion
+      ;; 	(let ((symbol (cdr (assoc arg my-lean-symbols))))
+      ;; 	(when symbol
+      ;; 	    ;; 2. Logic to "gobble" the backslash if it exists
+      ;; 	    (let* ((end (point))
+      ;; 		    (start (- end (length arg)))
+      ;; 		    ;; Check if the character right before our match is a backslash
+      ;; 		    (maybe-backslash (char-before start)))
+      ;; 	    (if (eq maybe-backslash ?\\)
+      ;; 		(delete-region (1- start) end)
+      ;; 		(delete-region start end))
+      ;; 	    (insert symbol)))))))
 
 
-    (defun company-my-lean-symbols (command &optional arg &rest _ignored)
-      (interactive (list 'interactive))
-      (cl-case command
-        (interactive (company-begin-backend 'company-my-lean-symbols))
-        ;; Returns nil implicitly when looking-back is false
-        (prefix 
-         (when (looking-back "\\\\[^[:space:]]*" (line-beginning-position))
-           (match-string 0)))
-        (candidates
-         (when (string-prefix-p "\\" arg)
-           (let ((query (substring arg 1))) ; Remove leading backslash
-             (cl-loop for (trigger . symbol) in my-lean-symbols
-                      ;; Remove backslash from trigger if present for comparison
-                      for clean-trigger = (string-remove-prefix "\\" trigger)
-                      if (string-prefix-p query clean-trigger)
-                      collect (concat "\\" clean-trigger)))))
-        (annotation
-         (let* ((clean-arg (string-remove-prefix "\\" arg))
-                (entry (or (assoc arg my-lean-symbols)
-                           (assoc clean-arg my-lean-symbols))))
-           (when entry
-             (concat " " (cdr entry)))))
-        (post-completion
-         (let* ((clean-arg (string-remove-prefix "\\" arg))
-                (entry (or (assoc arg my-lean-symbols)
-                           (assoc clean-arg my-lean-symbols)))
-                (symbol (cdr entry)))
-           (when symbol
-             (let* ((end (point))
-                    (start (- end (length arg))))
-               (delete-region start end)
-               (insert symbol)))))))
+      (defun company-my-lean-symbols (command &optional arg &rest _ignored)
+        (interactive (list 'interactive))
+        (cl-case command
+          (interactive (company-begin-backend 'company-my-lean-symbols))
+          ;; Returns nil implicitly when looking-back is false
+          (prefix 
+           (when (looking-back "\\\\[^[:space:]]*" (line-beginning-position))
+             (match-string 0)))
+          (candidates
+           (when (string-prefix-p "\\" arg)
+             (let ((query (substring arg 1))) ; Remove leading backslash
+               (cl-loop for (trigger . symbol) in my-lean-symbols
+                        ;; Remove backslash from trigger if present for comparison
+                        for clean-trigger = (string-remove-prefix "\\" trigger)
+                        if (string-prefix-p query clean-trigger)
+                        collect (concat "\\" clean-trigger)))))
+          (annotation
+           (let* ((clean-arg (string-remove-prefix "\\" arg))
+                  (entry (or (assoc arg my-lean-symbols)
+                             (assoc clean-arg my-lean-symbols))))
+             (when entry
+               (concat " " (cdr entry)))))
+          (post-completion
+           (let* ((clean-arg (string-remove-prefix "\\" arg))
+                  (entry (or (assoc arg my-lean-symbols)
+                             (assoc clean-arg my-lean-symbols)))
+                  (symbol (cdr entry)))
+             (when symbol
+               (let* ((end (point))
+                      (start (- end (length arg))))
+                 (delete-region start end)
+                 (insert symbol)))))))
 
-    (add-hook 'lean4-mode-hook
-              (lambda ()
-                (setq-local yas-fallback-behavior 'return-nil)
-                (add-hook 'post-self-insert-hook
-                          (lambda ()
-                            ;; If the character just typed is a "word" char or part of a symbol
-                            ;; and it follows a backslash, try to expand.
-                            (when (and (bound-and-true-p yas-minor-mode)
-                                       (looking-back "\\\\[^ \t\n]+" (line-beginning-position)))
-                              (yas-expand)))
-                          nil t)))
+      (add-hook 'lean4-mode-hook
+                (lambda ()
+                  (setq-local yas-fallback-behavior 'return-nil)
+                  (add-hook 'post-self-insert-hook
+                            (lambda ()
+                              ;; If the character just typed is a "word" char or part of a symbol
+                              ;; and it follows a backslash, try to expand.
+                              (when (and (bound-and-true-p yas-minor-mode)
+                                         (looking-back "\\\\[^ \t\n]+" (line-beginning-position)))
+                                (yas-expand)))
+                            nil t)))
 
-    ;; (add-hook 'lean4-mode-hook
-    ;; 	    (lambda ()
+      ;; (add-hook 'lean4-mode-hook
+      ;; 	    (lambda ()
 
-    ;; 		;; (setq-local company-backends 
-    ;; 		;; '(  company-my-lean-symbols '(
-    ;; 		;;     ;; company-dabbrev 
-    ;; 		;;     ;; company-dabbrev-code 
-    ;; 		;;     ;; company-files 
-    ;; 		;;     company-keywords
-    ;; 		;;     company-semantic
-    ;; 		;;     company-capf 
-    ;; 		;; company-clang)))
-    ;; 	    ;; (setq-local company-dabbrev-minimum-length 5)
+      ;; 		;; (setq-local company-backends 
+      ;; 		;; '(  company-my-lean-symbols '(
+      ;; 		;;     ;; company-dabbrev 
+      ;; 		;;     ;; company-dabbrev-code 
+      ;; 		;;     ;; company-files 
+      ;; 		;;     company-keywords
+      ;; 		;;     company-semantic
+      ;; 		;;     company-capf 
+      ;; 		;; company-clang)))
+      ;; 	    ;; (setq-local company-dabbrev-minimum-length 5)
 
-    ;; 	    (setq-local company-backends 
-    ;; 		'(
-    ;; 		  ;; company-my-lean-symbols  ;; 1. Check this first (Fast)
-    ;; 		company-keywords         ;; 2. Check this second (Fast)
-    ;; 		(company-capf company-dabbrev)))
-    ;; 		;;        ;; 4. Last resort	
+      ;; 	    (setq-local company-backends 
+      ;; 		'(
+      ;; 		  ;; company-my-lean-symbols  ;; 1. Check this first (Fast)
+      ;; 		company-keywords         ;; 2. Check this second (Fast)
+      ;; 		(company-capf company-dabbrev)))
+      ;; 		;;        ;; 4. Last resort	
 
-    ;; 		;; (add-to-list 'company-backends '(company-my-lean-symbols company-capf))
-    ;; 		;; Optional: start completing after just 1 character
+      ;; 		;; (add-to-list 'company-backends '(company-my-lean-symbols company-capf))
+      ;; 		;; Optional: start completing after just 1 character
 
-    ;; 		;; (setq-local completion-styles '(basic))
+      ;; 		;; (setq-local completion-styles '(basic))
 
-    ;; 		(setq-local company-minimum-prefix-length 2)) 100)
+      ;; 		(setq-local company-minimum-prefix-length 2)) 100)
 
-    ;; Use lean4-mode-hook to set backends AFTER lean4-mode initializes
-    ;; (add-hook 'lean4-mode-hook
-    ;; 	    (lambda ()
-    ;; 		(setq-local company-backends
-    ;; 			    '(company-keywords         ; Fast keyword completion
-    ;; 			    (company-capf            ; Lean's semantic completion
-    ;; 			    company-dabbrev)))      ; Fallback text completion
-    ;; 		(setq-local company-minimum-prefix-length 2)))
+      ;; Use lean4-mode-hook to set backends AFTER lean4-mode initializes
+      ;; (add-hook 'lean4-mode-hook
+      ;; 	    (lambda ()
+      ;; 		(setq-local company-backends
+      ;; 			    '(company-keywords         ; Fast keyword completion
+      ;; 			    (company-capf            ; Lean's semantic completion
+      ;; 			    company-dabbrev)))      ; Fallback text completion
+      ;; 		(setq-local company-minimum-prefix-length 2)))
 
-    ;; Do not let eglot set company backends
-    (setq eglot-stay-out-of '(company))
+      ;; Do not let eglot set company backends
+      (setq eglot-stay-out-of '(company))
 
-    (use-package company-math)
+      (use-package company-math)
 
-    (defun my-lean4-company-setup ()
-      "Set up company backends for Lean4 after mode initialization."
-      (setq-local company-backends
-                   '(company-math-symbols-unicode
-    		 company-keywords
-                    (company-capf company-dabbrev)))
-      (setq-local company-minimum-prefix-length 2))
+      (defun my-lean4-company-setup ()
+        "Set up company backends for Lean4 after mode initialization."
+        (setq-local company-backends
+                     '(company-math-symbols-unicode
+      		 company-keywords
+                      (company-capf company-dabbrev)))
+        (setq-local company-minimum-prefix-length 2))
 
-    ;; Apply AFTER lean4-mode sets up
-    (add-hook 'lean4-mode-hook #'my-lean4-company-setup)
+      ;; Apply AFTER lean4-mode sets up
+      (add-hook 'lean4-mode-hook #'my-lean4-company-setup)
 
-    ;; If that doesn't work, use advice to force it after eglot starts
-    (advice-add 'eglot-ensure :after
-                (lambda (&rest _)
-                  (when (derived-mode-p 'lean4-mode)
-                    (my-lean4-company-setup))))
+      ;; If that doesn't work, use advice to force it after eglot starts
+      (advice-add 'eglot-ensure :after
+                  (lambda (&rest _)
+                    (when (derived-mode-p 'lean4-mode)
+                      (my-lean4-company-setup))))
 
-    (use-package czm-lean4
-      :straight (czm-lean4 :type git :host github
-        		       :repo "ultronozm/czm-lean4.el"))
+      (use-package czm-lean4
+        :straight (czm-lean4 :type git :host github
+          		       :repo "ultronozm/czm-lean4.el"))
 
-    (add-hook 'lean4-mode-hook
-        	  (lambda ()
-    	    (advice-add 'lean4-info-buffer-redisplay :around #'czm-lean4-info-buffer-redisplay)
-    	    (advice-add 'lean4-info-buffer-redisplay :after #'czm-lean4--goal-overlay-update-adapter)))
+      (add-hook 'lean4-mode-hook
+          	  (lambda ()
+      	    (advice-add 'lean4-info-buffer-redisplay :around #'czm-lean4-info-buffer-redisplay)
+      	    (advice-add 'lean4-info-buffer-redisplay :after #'czm-lean4--goal-overlay-update-adapter)))
 
-    (defun czm-add-lean4-eldoc ()
-      (when (with-current-buffer eldoc-icebox-parent-buffer
-              (or (eq major-mode 'lean4-mode)
-                  (equal (buffer-name)
-                         "*Lean Goal*")))
-        (add-hook 'eldoc-documentation-functions #'lean4-info-eldoc-function
-                  nil t)
-        (eldoc-mode)))
+      (defun czm-add-lean4-eldoc ()
+        (when (with-current-buffer eldoc-icebox-parent-buffer
+                (or (eq major-mode 'lean4-mode)
+                    (equal (buffer-name)
+                           "*Lean Goal*")))
+          (add-hook 'eldoc-documentation-functions #'lean4-info-eldoc-function
+                    nil t)
+          (eldoc-mode)))
 
-    (use-package eldoc-icebox
-      :straight (:host github :repo "ultronozm/eldoc-icebox.el" :depth nil)
-      :bind (("C-c C-h" . eldoc-icebox-store)
-             ("C-c C-n" . eldoc-icebox-toggle-display))
-      :hook
-      (eldoc-icebox-post-display . shrink-window-if-larger-than-buffer)
-      (eldoc-icebox-post-display . czm-lean4-fontify-buffer)
-      (eldoc-icebox-post-display . czm-add-lean4-eldoc))
+      (use-package eldoc-icebox
+        :straight (:host github :repo "ultronozm/eldoc-icebox.el" :depth nil)
+        :bind (("C-c C-h" . eldoc-icebox-store)
+               ("C-c C-n" . eldoc-icebox-toggle-display))
+        :hook
+        (eldoc-icebox-post-display . shrink-window-if-larger-than-buffer)
+        (eldoc-icebox-post-display . czm-lean4-fontify-buffer)
+        (eldoc-icebox-post-display . czm-add-lean4-eldoc))
+      
+
+    (with-eval-after-load 'lean4-mode
+    (defun lean4-indent-line ()
+      "Lean 4 indent line function.
+    If point is at the end of the current indentation, use `lean4-eri-indent';
+    or if point is before that position, move it there; or do nothing, to allow
+    tab completion (if configured)."
+      (let ((cur-column (current-column))
+            (cur-indent (current-indentation)))
+        (cond 
+         ;; New blank line: use previous line's indent
+         ((and (= cur-column 0) 
+               (= cur-indent 0)
+               (looking-at "^[[:space:]]*$"))
+          (let ((prev-indent (save-excursion
+                               (forward-line -1)
+                               (current-indentation))))
+            (when (> prev-indent 0)
+              (indent-line-to prev-indent))))
+         
+         ((= cur-column cur-indent)
+          (lean4-eri-indent))
+         ((< cur-column cur-indent)
+          (move-to-column cur-indent))))))
+
+      (add-hook 'lean4-mode-hook
+            (lambda ()
+              ;; 1. Disable aggressive-indent-mode
+              (aggressive-indent-mode -1)
+              
+              ;; 2. Enable eldoc-box hover (mouse) mode
+              (eldoc-box-hover-mode 1)
+              
+              ;; 3. Disable eldoc-box hover-at-point mode
+              (eldoc-box-hover-at-point-mode -1)))
+
+      ;; Find the goal buffer mode name first
+      ;; It's likely lean4-info-mode or similar
+      (add-hook 'lean4-info-mode-hook
+    	    (lambda ()
+    		(eldoc-box-hover-mode 1)
+    		(eldoc-box-hover-at-point-mode -1)))
+
+    ;; For goal buffer - only apply to Lean-related magit-section buffers
+      (add-hook 'magit-section-mode-hook
+    		(lambda ()
+    		    ;; Only configure if this is a Lean buffer
+    		    (when (string-match-p "\\*Lean" (buffer-name))
+    		    (eldoc-box-mouse-mode 1)
+    		    (eldoc-box-hover-at-point-mode -1))))
+
+
+  ;; (use-package flycheck-eglot
+  ;;   :ensure t
+  ;;   :after (flycheck eglot)
+  ;;   :config
+  ;;   (global-flycheck-eglot-mode 1))
     
-
-  (with-eval-after-load 'lean4-mode
-  (defun lean4-indent-line ()
-    "Lean 4 indent line function.
-  If point is at the end of the current indentation, use `lean4-eri-indent';
-  or if point is before that position, move it there; or do nothing, to allow
-  tab completion (if configured)."
-    (let ((cur-column (current-column))
-          (cur-indent (current-indentation)))
-      (cond 
-       ;; New blank line: use previous line's indent
-       ((and (= cur-column 0) 
-             (= cur-indent 0)
-             (looking-at "^[[:space:]]*$"))
-        (let ((prev-indent (save-excursion
-                             (forward-line -1)
-                             (current-indentation))))
-          (when (> prev-indent 0)
-            (indent-line-to prev-indent))))
-       
-       ((= cur-column cur-indent)
-        (lean4-eri-indent))
-       ((< cur-column cur-indent)
-        (move-to-column cur-indent))))))
-
-    (add-hook 'lean4-mode-hook
-          (lambda ()
-            ;; 1. Disable aggressive-indent-mode
-            (aggressive-indent-mode -1)
-            
-            ;; 2. Enable eldoc-box hover (mouse) mode
-            (eldoc-box-hover-mode 1)
-            
-            ;; 3. Disable eldoc-box hover-at-point mode
-            (eldoc-box-hover-at-point-mode -1)))
-
-    ;; Find the goal buffer mode name first
-    ;; It's likely lean4-info-mode or similar
-    (add-hook 'lean4-info-mode-hook
-  	    (lambda ()
-  		(eldoc-box-hover-mode 1)
-  		(eldoc-box-hover-at-point-mode -1)))
-
-  ;; For goal buffer - only apply to Lean-related magit-section buffers
-    (add-hook 'magit-section-mode-hook
-		(lambda ()
-		    ;; Only configure if this is a Lean buffer
-		    (when (string-match-p "\\*Lean" (buffer-name))
-		    (eldoc-box-mouse-mode 1)
-		    (eldoc-box-hover-at-point-mode -1))))
-
 #+end_src
 
 #+RESULTS:
