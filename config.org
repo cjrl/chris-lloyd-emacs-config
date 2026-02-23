@@ -94,9 +94,8 @@ Builds a list of the recently opened files.
 	;; 2. Enable persistence so stats survive a restart
 	(prescient-persist-mode 1)
 
-	;; 3. Optional: If you want 'prescient' to also sort your Company candidates
-	;; (This replaces company-statistics if you want one system for everything)
-	;; (company-prescient-mode 1)
+	;; 3. company-prescient is enabled via use-package in the Company section below
+	;; (This replaces company-statistics and sorts Company candidates by frecency)
 	)
     
     (use-package avy
@@ -1377,10 +1376,10 @@ a file in Dropbox. These functions allow easy access to that computer.
   (use-package company-box
     :hook (company-mode . company-box-mode))
 
-  ;; (use-package company-prescient
-  ;; 	:after company
-  ;; 	:config
-  ;; 	(company-prescient-mode 1))
+  (use-package company-prescient
+    :after company
+    :config
+    (company-prescient-mode 1))
   ;; (use-package company-statistics
   ;; :init
   ;; (company-statistics-mode)
