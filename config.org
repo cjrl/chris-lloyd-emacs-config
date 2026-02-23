@@ -1,3 +1,4 @@
+#+PROPERTY: header-args :results none
 * Chris Lloyd's Emacs Configuration
 ** Package Management
 Setup package management.
@@ -35,9 +36,6 @@ Setup package management.
    ;; (setq use-package-always-ensure t)
 #+end_src
 
-#+RESULTS:
-: t
-
 ** General Settings
 *** Customs File
 When changing a variable through customize-variable dialog save these
@@ -47,9 +45,6 @@ init file.
   (setq custom-file "~/.emacs.d/custom.el")
   (load custom-file)
 #+end_src
-
-#+RESULTS:
-: t
 
 *** Backups
 Set the emacs backup to stop cluttering folders with backup files.
@@ -63,18 +58,12 @@ Set the emacs backup to stop cluttering folders with backup files.
   (setq vc-make-backup-files t)
 #+end_src
 
-#+RESULTS:
-: t
-
 *** No Bell 
 Turn off both the bell sound and the visual indicator. 
 #+begin_src emacs-lisp
   (setq visible-bell       nil
 	ring-bell-function #'ignore)
 #+end_src
-
-#+RESULTS:
-: ignore
 
 ** UI
 *** Recentf
@@ -86,64 +75,72 @@ Builds a list of the recently opened files.
     (setq recentf-max-saved-items nil))
 #+end_src
 
-#+RESULTS:
-: t
-
 *** Ivy
 #+begin_src emacs-lisp
 
-  (use-package ivy
-    :ensure t
-    :config
-    (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-count-format "(%d/%d) "))
+    (use-package ivy
+      :ensure t
+      :config
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq ivy-count-format "(%d/%d) "))
+  
+    (use-package ivy-prescient
+	:after ivy
+	:config
+	;; 1. Enable frequency tracking globally
+	(ivy-prescient-mode 1)
 
-  (use-package avy
-    :ensure t)
+	;; 2. Enable persistence so stats survive a restart
+	(prescient-persist-mode 1)
 
-  (use-package ace-window
-    :ensure t
-    :init
-    (setq aw-dispatch-always t))
+	;; 3. Optional: If you want 'prescient' to also sort your Company candidates
+	;; (This replaces company-statistics if you want one system for everything)
+	;; (company-prescient-mode 1)
+	)
+    
+    (use-package avy
+      :ensure t)
 
-  (use-package counsel
-    :ensure t
-    :config
-    (counsel-mode 1))
+    (use-package ace-window
+      :ensure t
+      :init
+      (setq aw-dispatch-always t))
 
-  (use-package ace-link)
+    (use-package counsel
+      :ensure t
+      :config
+      (counsel-mode 1))
 
-  (use-package which-key
-    :ensure t
-    :config
-    (which-key-mode 1))
+    (use-package ace-link)
 
-  (use-package swiper
-    :ensure t
-    :config)
+    (use-package which-key
+      :ensure t
+      :config
+      (which-key-mode 1))
 
-  (use-package ace-popup-menu
-    :ensure 
-    :config
-    (ace-popup-menu-mode 1))
+    (use-package swiper
+      :ensure t
+      :config)
 
-  (use-package ivy-posframe
-    :config
-    (ivy-posframe-mode)
-    (set-face-attribute 'ivy-posframe nil :background "#073642")
-    (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display))
-	  ivy-posframe-height-alist '((t . 5))
-	  ivy-posframe-parameters '((internal-border-width . 5))))
+    (use-package ace-popup-menu
+      :ensure 
+      :config
+      (ace-popup-menu-mode 1))
 
-  (setq posframe-arghandler #'my-posframe-arghandler)
-  (defun my-posframe-arghandler (buffer-or-name arg-name value)
-    (let ((info '(:internal-border-width 0 :background-color "DarkSlateBlue")))
-      (or (plist-get info arg-name) value)))
+    (use-package ivy-posframe
+      :config
+      (ivy-posframe-mode)
+      (set-face-attribute 'ivy-posframe nil :background "#073642")
+      (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display))
+    	  ivy-posframe-height-alist '((t . 5))
+    	  ivy-posframe-parameters '((internal-border-width . 5))))
+
+    (setq posframe-arghandler #'my-posframe-arghandler)
+    (defun my-posframe-arghandler (buffer-or-name arg-name value)
+      (let ((info '(:internal-border-width 0 :background-color "DarkSlateBlue")))
+        (or (plist-get info arg-name) value)))
 #+end_src
-
-#+RESULTS:
-: my-posframe-arghandler
 
 *** 
 
@@ -165,16 +162,11 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
 			    (- cur mid)))))
 #+END_SRC
 
-#+RESULTS:
-: my-horizontal-recenter
-
 #+begin_src emacs-lisp
   ;; (split-window-horizontally)
   ;; (split-window-horizontally)
   ;; (balance-windows)
 #+end_src
-
-#+RESULTS:
 
 *** Evil
 #+begin_src emacs-lisp
@@ -226,11 +218,9 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
     (use-package evil-matchit)
 #+end_src
 
-#+RESULTS:
-
 *** Surrounds
 #+BEGIN_SRC emacs-lisp
-   (use-package smartparens
+  (use-package smartparens
   	     :ensure smartparens
   	     :config
   	     (setq sp-max-pair-length 20)
@@ -242,13 +232,15 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
   	     (sp-pair "\\left\\langle" "\\right\\rangle")
   	     (sp-pair "\\left\\lceil" "\\right\\rceil")
   	     (sp-pair "\\left\\lfloor" "\\right\\rfloor")
+  	     (sp-pair  "⟨" "⟩" )
+  	     (sp-local-pair 'lean4-mode "⟨" "⟩" :trigger "⟨")
   	     (smartparens-global-mode 1))
 
-    (use-package evil-surround
-      :ensure t
-      :config
-      (global-evil-surround-mode 1)
-        (setq-default evil-surround-pairs-alist
+   (use-package evil-surround
+     :ensure t
+     :config
+     (global-evil-surround-mode 1)
+       (setq-default evil-surround-pairs-alist
   	  '((?\( . ("(" . ")"))
   	  (?\[ . ("[ " . " ]"))
   	  (?\{ . ("{" . "}"))
@@ -259,33 +251,33 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
   	  (?b . ("(" . ")"))
   	  (?B . ("{" . "}"))
   	  (?> . ("<" . ">"))
+  	  (?\<  "⟨" "⟩" )
   	  (?t . evil-surround-read-tag)
   	  (?< . evil-surround-read-tag)
   	  (?\C-f . evil-surround-prefix-function)
   	  (?f . evil-surround-function))))
 
-    (use-package embrace
-     :ensure t
-     :config
-     (add-hook 'LaTeX-mode-hook (lambda ()
-       (embrace-add-pair ?e "\\begin{" "}")
-       (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
-       (embrace-add-pair ?m "\\(" "\\)")
-       (embrace-add-pair ?M "\\[" "\\]")
-       (embrace-add-pair ?l "\\left\(" "\\right\)")
-       (defun embrace-with-command ()
-       (let ((fname (read-string "Command: ")))
-         (cons (format "\\%s{" (or fname "")) "}")))
-       (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
+   (use-package embrace
+    :ensure t
+    :config
+    (add-hook 'lean4-mode (lambda () (embrace-add-pair ?\<  "⟨" "⟩" )))
+    (add-hook 'LaTeX-mode-hook (lambda ()
+      (embrace-add-pair ?e "\\begin{" "}")
+      (embrace-add-pair ?a "\\begin{align*}\n" "\n\\end{align*}")
+      (embrace-add-pair ?m "\\(" "\\)")
+      (embrace-add-pair ?M "\\[" "\\]")
+      (embrace-add-pair ?l "\\left\(" "\\right\)")
+      (defun embrace-with-command ()
+      (let ((fname (read-string "Command: ")))
+        (cons (format "\\%s{" (or fname "")) "}")))
+      (embrace-add-pair-regexp ?c "\\\\\\w+?{" "}" 'embrace-with-command
   			    (embrace-build-help "\\command{" "}")))))
 
-     (use-package evil-embrace
-      :init
-      (evil-embrace-enable-evil-surround-integration)
-      (setq evil-embrace-show-help-p nil))
+    (use-package evil-embrace
+     :init
+     (evil-embrace-enable-evil-surround-integration)
+     (setq evil-embrace-show-help-p nil))
 #+END_SRC
-
-#+RESULTS:
 
 *** Global Keybindings
 
@@ -360,8 +352,6 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
    "SPC p" 'counsel-shell-history)
 #+end_src
 
-#+RESULTS:
-
 *** 
 
 ** Major Modes
@@ -371,8 +361,6 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
   (my-leader-def 'c++-mode-map
     "c" 'compile)
 #+end_src
-
-#+RESULTS:
 
 *** LaTeX
 **** Setup
@@ -452,9 +440,6 @@ tikz-diagrams, where I disabled wrapping. This function is from [[https://stacko
       (call-interactively 'evil-insert)))
 #+end_src
 
-#+RESULTS:
-: my-latex-insert-display-math
-
 This function searches the current LaTeX project for all the labels
 and then lets you insert one using the completion framework of your
 choice (in my case it uses ivy). This is based on the reftex function
@@ -480,9 +465,6 @@ goto-label.
     (insert (concat "\\ref{" label "}"))))
 #+end_src
 
-#+RESULTS:
-: my-ref-label
-
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'LaTeX-mode-map
@@ -497,8 +479,6 @@ goto-label.
     "r l" 'my-ref-label)
 #+end_src
 
-#+RESULTS:
-
 **** Bibtex
 #+begin_src emacs-lisp
   (use-package ivy-bibtex
@@ -512,8 +492,6 @@ goto-label.
   (use-package gscholar-bibtex)
 #+end_src
 
-#+RESULTS:
-
 **** PDF View
 #+begin_src emacs-lisp
   (use-package pdf-tools
@@ -525,8 +503,6 @@ goto-label.
 	#'TeX-revert-document-buffer))
 #+end_src
 
-#+RESULTS:
-: t
 
 I wrote a small package called [[https://github.com/cjl8zf/evil-pdf-tools][evil-pdf-tools]] that adds vim style key
 bindings for navigating pdfs and also simulates the vim search for
@@ -534,8 +510,6 @@ pdfs.
 #+begin_src emacs-lisp
   ;; (require 'evil-pdf-tools "~/.emacs.d/evil-pdf-tools-0.0.1.el")
 #+end_src
-
-#+RESULTS:
 
 *** Sage
 **** Setup
@@ -552,9 +526,6 @@ pdfs.
       (call-interactively 'other-window)))
 #+end_src
 
-#+RESULTS:
-: send-to-sage-and-switch
-
 **** Generate Ctags
 #+BEGIN_SRC emacs-lisp
   (defun generate-sage-tags ()
@@ -563,16 +534,11 @@ pdfs.
     (shell-command "find . -name \"*.sage\" -print | etags -l \"python\" -"))
 #+END_SRC
 
-#+RESULTS:
-: generate-sage-tags
-
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'sage-shell:sage-mode-map
     "c" 'sage-shell-edit:send-buffer)
 #+end_src
-
-#+RESULTS:
 
 *** Sage
 
@@ -582,8 +548,6 @@ pdfs.
     "c" 'python-shell-send-buffer)
 #+end_src
 
-#+RESULTS:
-
 *** Gap
 **** Setup
 #+begin_src emacs-lisp
@@ -592,43 +556,11 @@ pdfs.
     (setq gap-executable "/Applications/gap/bin/gap.sh"))
 #+end_src
 
-#+RESULTS:
-
 **** Keybindings
 #+begin_src emacs-lisp
   (my-leader-def 'gap-mode-map
     "c" 'gap-eval-file)
 #+end_src
-
-#+RESULTS:
-
-*** Haskell
-**** Setup
-#+begin_src emacs-lisp
-  (use-package haskell-mode
-    :ensure t
-    :init
-    (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
-    (add-hook 'haskell-mode-hook 'haskell-indent-mode)
-    (with-eval-after-load "haskell-mode"
-      ;; This changes the evil "O" and "o" keys for haskell-mode to make sure that
-      ;; indentation is done correctly. See
-      ;; https://github.com/haskell/haskell-mode/issues/1265#issuecomment-252492026.
-      (defun haskell-evil-open-above ()
-	(interactive)
-	(evil-digit-argument-or-evil-beginning-of-line)
-	(haskell-indentation-newline-and-indent)
-	(evil-previous-line)
-	(haskell-indentation-indent-line)
-	(evil-append-line nil))
-
-      (defun haskell-evil-open-below ()
-	(interactive)
-	(evil-append-line nil)
-	(haskell-indentation-newline-and-indent))))
-#+end_src
-
-#+RESULTS:
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -642,8 +574,6 @@ pdfs.
   "q" 'quit-window) 
 #+end_src
 
-#+RESULTS:
-
 *** Org
 
 #+begin_src emacs-lisp
@@ -655,15 +585,15 @@ pdfs.
     (bind-key* "C-c c" 'org-capture)
     (setq org-hide-emphasis-markers 't)
     (setq org-capture-templates
-	  '(("t" "Todo" entry (file "~/org/refile.org")
-	     "* TODO %?\n")
-	    ("c" "Clocked Todo" entry (file "~/org/refile.org")
-	     "* TODO %?\n" :clock-in t :clock-keep t)))
+  	  '(("t" "Todo" entry (file "~/org/refile.org")
+  	     "* TODO %?\n")
+  	    ("c" "Clocked Todo" entry (file "~/org/refile.org")
+  	     "* TODO %?\n" :clock-in t :clock-keep t)))
     (setq org-agenda-files '("~/org"))
     ;; 12 hour clock
     (setq org-agenda-timegrid-use-ampm 1)
     (setq org-refile-targets '((nil :maxlevel . 9)
-			       (org-agenda-files :maxlevel . 9)))
+  			       (org-agenda-files :maxlevel . 9)))
     ;; hide file names in agenda view
     (setq org-agenda-prefix-format "%t %s")
     (setq org-reverse-note-order t)
@@ -681,25 +611,25 @@ pdfs.
     :config
     (with-eval-after-load 'ox-latex
       (add-to-list 'org-latex-classes '("draft" "\\documentclass[11pt,draft]{book}"
-					("\\chapter{%s}" . "\\chapter*{%s}")
-					("\\section{%s}" . "\\section*{%s}")
-					("\\subsection{%s}" . "\\subsection*{%s}")
-					("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-					("\\paragraph{%s}" . "\\paragraph*{%s}")
-					("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  					("\\chapter{%s}" . "\\chapter*{%s}")
+  					("\\section{%s}" . "\\section*{%s}")
+  					("\\subsection{%s}" . "\\subsection*{%s}")
+  					("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+  					("\\paragraph{%s}" . "\\paragraph*{%s}")
+  					("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
       (add-to-list 'org-latex-classes '("semesternotes" "\\documentclass[11pt]{book}"
-					("\\part{%s}" . "\\part*{%s}")
-					("\\chapter{%s}" . "\\chapter*{%s}")
-					("\\section{%s}" . "\\section*{%s}")
-					("%% %s" . "%% %s")
-					("%% %s" . "%% %s")
-					("\\paragraph{%s}" . "\\paragraph*{%s}")
-					("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  					("\\part{%s}" . "\\part*{%s}")
+  					("\\chapter{%s}" . "\\chapter*{%s}")
+  					("\\section{%s}" . "\\section*{%s}")
+  					("%% %s" . "%% %s")
+  					("%% %s" . "%% %s")
+  					("\\paragraph{%s}" . "\\paragraph*{%s}")
+  					("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
       (add-to-list 'org-latex-classes '("drill" "\\documentclass[11pt]{book}"
-					("\\section{%s}" . "\\section*{%s}")
-					("%% %s" . "%% %s")
-					("\\begin{thm}{%s}" "\\end{thm}" "\\begin{thm}{%s}" "\\end{thm}")
-					("\\begin{proof}{%s}" "\\end{proof}" "\\begin{proof}{%s}" "\\end{proof}"))))
+  					("\\section{%s}" . "\\section*{%s}")
+  					("%% %s" . "%% %s")
+  					("\\begin{thm}{%s}" "\\end{thm}" "\\begin{thm}{%s}" "\\end{thm}")
+  					("\\begin{proof}{%s}" "\\end{proof}" "\\begin{proof}{%s}" "\\end{proof}"))))
 
     ;; ("\\begin{defn}{%s}" "\\end{defn}" "\\begin{defn}{%s}" "\\end{defn}")
     (setq org-catch-invisible-edits 'error)
@@ -715,6 +645,18 @@ pdfs.
   ;;   (setq org-drill-add-random-noise-to-intervals-p t))
 
   ;; (use-pa ckage org-edit-latex)
+
+  (use-package org-superstar
+  :config
+  (setq org-superstar-leading-bullet " ")
+  (setq org-superstar-headline-bullets-list '("◉" "○" "⚬" "◈" "◇"))
+  (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
+  (setq org-superstar-todo-bullet-alist '(("TODO"  . 9744)
+                                          ("WAIT"  . 9744)
+                                          ("READ"  . 9744)
+                                          ("PROG"  . 9744)
+										  ("DONE"  . 9745)))
+  :hook (org-mode . org-superstar-mode))
 
   (defun my-org-hide-current-body ()
     "Hide body of current heading and go to heading."
@@ -746,9 +688,6 @@ pdfs.
       (call-interactively 'org-insert-subheading)
       (call-interactively 'evil-insert)))
 #+end_src
-
-#+RESULTS:
-: my-evil-org-insert-subheading
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -782,8 +721,6 @@ pdfs.
    "g J" 'my-org-hide-current-body)
 #+end_src
 
-#+RESULTS:
-
 *** Elisp
 **** Setup
 #+BEGIN_SRC emacs-lisp
@@ -796,73 +733,64 @@ pdfs.
   (use-package paredit)
 #+END_SRC
 
-#+RESULTS:
-
 **** Keybindings
 #+BEGIN_SRC emacs-lisp
   (my-leader-def 'emacs-lisp-mode-map
     "e b" 'eval-buffer)
 #+END_SRC
 
-#+RESULTS:
-
 *** Lean 4
 #+BEGIN_SRC emacs-lisp
-      (setq straight-built-in-pseudo-packages '(emacs xref nadvice python image-mode project flymake))
-      (use-package lean4-mode
-	:commands lean4-mode
-	:straight (lean4-mode :type git :host github
-			    :repo "leanprover-community/lean4-mode"
-			    :files ("*.el" "data")))
+  (setq straight-built-in-pseudo-packages '(emacs xref nadvice python image-mode project flymake))
 
-  ;; (use-package nael
-  ;;   :straight (:host codeberg 
-  ;;              :repo "mekeor/nael"
-  ;;              :files (:defaults (:exclude "build.el"))))
-   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael")
-   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael-lsp")
-   ;; (add-to-list 'load-path "~/.emacs.d/nael/nael-markdown")
-   ;; (require 'nael)
-   ;; (require 'nael-lsp)
-   ;; (require 'nael-markdown)
-   ;; (add-hook 'nael-mode-hook #'abbrev-mode)
-   ;; (add-hook 'nael-mode-hook #'eglot-ensure)
+  (use-package lean4-mode
+    :commands lean4-mode
+    :straight (lean4-mode :type git :host github
+  			;; :repo "ultronozm/lean4-mode"
+  	             	  :branch "copilot/fix-truncated-flymake-messages"	
+  			;; :branch "copilot/add-double-checkmark-lean4-mode"	
+  			:repo "ghseeli/lean4-mode"		
+  			:files ("*.el" "data"))
+    :config
+    (setq lean4-info-plain nil))
 
-    (add-hook 'lean4-mode-hook #'lsp)   ;; for Lean 4
+  (defun lean-toggle-check ()
+    (interactive)
+    (save-excursion
+      (beginning-of-line)
+      (cond
+       ;; #check → remove
+       ((looking-at "^#check\\(\\s-+\\)?")
+        (replace-match ""))
+       ;; #eval → replace with #check
+       ((looking-at "^#eval\\(\\s-+\\)?")
+        (replace-match "#check "))
+       ;; other → insert #check
+       (t
+        (insert "#check ")))))
 
-    (defun lean-toggle-check ()
-      (interactive)
-      (save-excursion
-	(beginning-of-line)
-	(cond
-	 ;; #check → remove
-	 ((looking-at "^#check\\(\\s-+\\)?")
-	  (replace-match ""))
-	 ;; #eval → replace with #check
-	 ((looking-at "^#eval\\(\\s-+\\)?")
-	  (replace-match "#check "))
-	 ;; other → insert #check
-	 (t
-	  (insert "#check ")))))
+  (defun lean-toggle-eval ()
+    (interactive)
+    (save-excursion
+      (beginning-of-line)
+      (cond
+       ;; #eval → remove
+       ((looking-at "^#eval\\(\\s-+\\)?")
+        (replace-match ""))
+       ;; #check → replace with #eval
+       ((looking-at "^#check\\(\\s-+\\)?")
+        (replace-match "#eval "))
+       ;; other → insert #eval
+       (t
+        (insert "#eval ")))))
 
-    (defun lean-toggle-eval ()
-      (interactive)
-      (save-excursion
-	(beginning-of-line)
-	(cond
-	 ;; #eval → remove
-	 ((looking-at "^#eval\\(\\s-+\\)?")
-	  (replace-match ""))
-	 ;; #check → replace with #eval
-	 ((looking-at "^#check\\(\\s-+\\)?")
-	  (replace-match "#eval "))
-	 ;; other → insert #eval
-	 (t
-	  (insert "#eval ")))))
+  (use-package eldoc-box
+    :config
+    (eldoc-box-hover-at-point-mode 1))
+
+    (add-hook 'lean4-mode-hook #'eldoc-box-hover-at-point-mode)
+
 #+END_SRC
-
-#+RESULTS:
-: lean-toggle-eval
 
 **** Keybindings
 #+begin_src emacs-lisp
@@ -872,8 +800,6 @@ pdfs.
     "l l" 'lean4-toggle-info
     "?" 'lsp-ui-doc-mode)
 #+end_src
-
-#+RESULTS:
 
 **** `jk` normal mode fix 
 
@@ -928,68 +854,241 @@ map in lean4-mode so that jk keeps working.
 We create a custom company-mode backend for lean symbol completion. 
 
 #+begin_src emacs-lisp :lexical t 
-  (require 'json)
+      (require 'json)
 
-  (setq my-lean-symbols
-	(let ((json-file-path (expand-file-name "lean-symbols.json" user-emacs-directory)))
-	  (when (file-exists-p json-file-path)
-	    (with-temp-buffer
-	      (insert-file-contents json-file-path)
-	      (goto-char (point-min))
-	      ;; In json-parse-buffer, 'alist' usually forces keys to symbols.
-	      ;; We'll parse it and then ensure keys are strings if they aren't already.
-	      (let ((raw-data (json-parse-buffer :object-type 'alist)))
-		(mapcar (lambda (pair)
-			  (cons (format "%s" (car pair)) (cdr pair)))
-			raw-data))))))
+      (setq my-lean-symbols
+            (let ((json-file-path (expand-file-name "lean-symbols.json" user-emacs-directory)))
+            	(when (file-exists-p json-file-path)
+            	  (with-temp-buffer
+            	    (insert-file-contents json-file-path)
+            	    (goto-char (point-min))
+            	    ;; In json-parse-buffer, 'alist' usually forces keys to symbols.
+            	    ;; We'll parse it and then ensure keys are strings if they aren't already.
+            	    (let ((raw-data (json-parse-buffer :object-type 'alist)))
+            	      (mapcar (lambda (pair)
+            			(cons (format "%s" (car pair)) (cdr pair)))
+            		      raw-data))))))
 
-    (defun company-my-lean-symbols (command &optional arg &rest _ignored)
-    (interactive (list 'interactive))
-    (cl-case command
-	(interactive (company-begin-backend 'company-my-lean-symbols))
-	;; 1. Grab everything including the backslash
-	(prefix (company-grab-symbol-cons "[^[:space:]]+" 0))
-	(candidates
-	(let ((query (string-remove-prefix "\\" arg)))
-	(cl-loop for (trigger . symbol) in my-lean-symbols
-		    if (string-prefix-p query trigger)
-		    collect trigger)))
-	(annotation
-	(concat " " (cdr (assoc arg my-lean-symbols))))
-	(post-completion
-	(let ((symbol (cdr (assoc arg my-lean-symbols))))
-	(when symbol
-	    ;; 2. Logic to "gobble" the backslash if it exists
-	    (let* ((end (point))
-		    (start (- end (length arg)))
-		    ;; Check if the character right before our match is a backslash
-		    (maybe-backslash (char-before start)))
-	    (if (eq maybe-backslash ?\\)
-		(delete-region (1- start) end)
-		(delete-region start end))
-	    (insert symbol)))))))
+      ;; (defun company-my-lean-symbols (command &optional arg &rest _ignored)
+      ;; (interactive (list 'interactive))
+      ;; (cl-case command
+      ;; 	(interactive (company-begin-backend 'company-my-lean-symbols))
+      ;; 	;; 1. Grab everything including the backslash
+      ;; 	(prefix (company-grab-symbol-cons "[^[:space:]]+" 0))
+      ;; 	(candidates
+      ;; 	(let ((query (string-remove-prefix "\\" arg)))
+      ;; 	(cl-loop for (trigger . symbol) in my-lean-symbols
+      ;; 		    if (string-prefix-p query trigger)
+      ;; 		    collect trigger)))
+      ;; 	(annotation
+      ;; 	(concat " " (cdr (assoc arg my-lean-symbols))))
+      ;; 	(post-completion
+      ;; 	(let ((symbol (cdr (assoc arg my-lean-symbols))))
+      ;; 	(when symbol
+      ;; 	    ;; 2. Logic to "gobble" the backslash if it exists
+      ;; 	    (let* ((end (point))
+      ;; 		    (start (- end (length arg)))
+      ;; 		    ;; Check if the character right before our match is a backslash
+      ;; 		    (maybe-backslash (char-before start)))
+      ;; 	    (if (eq maybe-backslash ?\\)
+      ;; 		(delete-region (1- start) end)
+      ;; 		(delete-region start end))
+      ;; 	    (insert symbol)))))))
 
-    (add-hook 'lean4-mode-hook
-	    (lambda ()
 
-		(setq-local company-backends 
-		'((company-my-lean-symbols
-		    company-dabbrev 
-		    company-dabbrev-code 
-		    company-files 
-		    company-capf 
-		    company-keywords
-		    company-semantic
-		company-clang)))
+      (defun company-my-lean-symbols (command &optional arg &rest _ignored)
+        (interactive (list 'interactive))
+        (cl-case command
+          (interactive (company-begin-backend 'company-my-lean-symbols))
+          ;; Returns nil implicitly when looking-back is false
+          (prefix 
+           (when (looking-back "\\\\[^[:space:]]*" (line-beginning-position))
+             (match-string 0)))
+          (candidates
+           (when (string-prefix-p "\\" arg)
+             (let ((query (substring arg 1))) ; Remove leading backslash
+               (cl-loop for (trigger . symbol) in my-lean-symbols
+                        ;; Remove backslash from trigger if present for comparison
+                        for clean-trigger = (string-remove-prefix "\\" trigger)
+                        if (string-prefix-p query clean-trigger)
+                        collect (concat "\\" clean-trigger)))))
+          (annotation
+           (let* ((clean-arg (string-remove-prefix "\\" arg))
+                  (entry (or (assoc arg my-lean-symbols)
+                             (assoc clean-arg my-lean-symbols))))
+             (when entry
+               (concat " " (cdr entry)))))
+          (post-completion
+           (let* ((clean-arg (string-remove-prefix "\\" arg))
+                  (entry (or (assoc arg my-lean-symbols)
+                             (assoc clean-arg my-lean-symbols)))
+                  (symbol (cdr entry)))
+             (when symbol
+               (let* ((end (point))
+                      (start (- end (length arg))))
+                 (delete-region start end)
+                 (insert symbol)))))))
 
-		;; (add-to-list 'company-backends '(company-my-lean-symbols company-capf))
-		;; Optional: start completing after just 1 character
-		(setq-local company-minimum-prefix-length 1)) 90)
+      (add-hook 'lean4-mode-hook
+                (lambda ()
+                  (setq-local yas-fallback-behavior 'return-nil)
+                  (add-hook 'post-self-insert-hook
+                            (lambda ()
+                              ;; If the character just typed is a "word" char or part of a symbol
+                              ;; and it follows a backslash, try to expand.
+                              (when (and (bound-and-true-p yas-minor-mode)
+                                         (looking-back "\\\\[^ \t\n]+" (line-beginning-position)))
+                                (yas-expand)))
+                            nil t)))
 
+      ;; (add-hook 'lean4-mode-hook
+      ;; 	    (lambda ()
+
+      ;; 		;; (setq-local company-backends 
+      ;; 		;; '(  company-my-lean-symbols '(
+      ;; 		;;     ;; company-dabbrev 
+      ;; 		;;     ;; company-dabbrev-code 
+      ;; 		;;     ;; company-files 
+      ;; 		;;     company-keywords
+      ;; 		;;     company-semantic
+      ;; 		;;     company-capf 
+      ;; 		;; company-clang)))
+      ;; 	    ;; (setq-local company-dabbrev-minimum-length 5)
+
+      ;; 	    (setq-local company-backends 
+      ;; 		'(
+      ;; 		  ;; company-my-lean-symbols  ;; 1. Check this first (Fast)
+      ;; 		company-keywords         ;; 2. Check this second (Fast)
+      ;; 		(company-capf company-dabbrev)))
+      ;; 		;;        ;; 4. Last resort	
+
+      ;; 		;; (add-to-list 'company-backends '(company-my-lean-symbols company-capf))
+      ;; 		;; Optional: start completing after just 1 character
+
+      ;; 		;; (setq-local completion-styles '(basic))
+
+      ;; 		(setq-local company-minimum-prefix-length 2)) 100)
+
+      ;; Use lean4-mode-hook to set backends AFTER lean4-mode initializes
+      ;; (add-hook 'lean4-mode-hook
+      ;; 	    (lambda ()
+      ;; 		(setq-local company-backends
+      ;; 			    '(company-keywords         ; Fast keyword completion
+      ;; 			    (company-capf            ; Lean's semantic completion
+      ;; 			    company-dabbrev)))      ; Fallback text completion
+      ;; 		(setq-local company-minimum-prefix-length 2)))
+
+      ;; Do not let eglot set company backends
+      (setq eglot-stay-out-of '(company))
+
+      (use-package company-math)
+
+      (defun my-lean4-company-setup ()
+        "Set up company backends for Lean4 after mode initialization."
+        (setq-local company-backends
+                     '(company-math-symbols-unicode
+      		 company-keywords
+                      (company-capf company-dabbrev)))
+        (setq-local company-minimum-prefix-length 2))
+
+      ;; Apply AFTER lean4-mode sets up
+      (add-hook 'lean4-mode-hook #'my-lean4-company-setup)
+
+      ;; If that doesn't work, use advice to force it after eglot starts
+      (advice-add 'eglot-ensure :after
+                  (lambda (&rest _)
+                    (when (derived-mode-p 'lean4-mode)
+                      (my-lean4-company-setup))))
+
+      (use-package czm-lean4
+        :straight (czm-lean4 :type git :host github
+          		       :repo "ultronozm/czm-lean4.el"))
+
+      (add-hook 'lean4-mode-hook
+          	  (lambda ()
+      	    (advice-add 'lean4-info-buffer-redisplay :around #'czm-lean4-info-buffer-redisplay)
+      	    (advice-add 'lean4-info-buffer-redisplay :after #'czm-lean4--goal-overlay-update-adapter)))
+
+      (defun czm-add-lean4-eldoc ()
+        (when (with-current-buffer eldoc-icebox-parent-buffer
+                (or (eq major-mode 'lean4-mode)
+                    (equal (buffer-name)
+                           "*Lean Goal*")))
+          (add-hook 'eldoc-documentation-functions #'lean4-info-eldoc-function
+                    nil t)
+          (eldoc-mode)))
+
+      (use-package eldoc-icebox
+        :straight (:host github :repo "ultronozm/eldoc-icebox.el" :depth nil)
+        :bind (("C-c C-h" . eldoc-icebox-store)
+               ("C-c C-n" . eldoc-icebox-toggle-display))
+        :hook
+        (eldoc-icebox-post-display . shrink-window-if-larger-than-buffer)
+        (eldoc-icebox-post-display . czm-lean4-fontify-buffer)
+        (eldoc-icebox-post-display . czm-add-lean4-eldoc))
+      
+
+    (with-eval-after-load 'lean4-mode
+    (defun lean4-indent-line ()
+      "Lean 4 indent line function.
+    If point is at the end of the current indentation, use `lean4-eri-indent';
+    or if point is before that position, move it there; or do nothing, to allow
+    tab completion (if configured)."
+      (let ((cur-column (current-column))
+            (cur-indent (current-indentation)))
+        (cond 
+         ;; New blank line: use previous line's indent
+         ((and (= cur-column 0) 
+               (= cur-indent 0)
+               (looking-at "^[[:space:]]*$"))
+          (let ((prev-indent (save-excursion
+                               (forward-line -1)
+                               (current-indentation))))
+            (when (> prev-indent 0)
+              (indent-line-to prev-indent))))
+         
+         ((= cur-column cur-indent)
+          (lean4-eri-indent))
+         ((< cur-column cur-indent)
+          (move-to-column cur-indent))))))
+
+      (add-hook 'lean4-mode-hook
+            (lambda ()
+              ;; 1. Disable aggressive-indent-mode
+              (aggressive-indent-mode -1)
+              
+              ;; 2. Enable eldoc-box hover (mouse) mode
+              (eldoc-box-hover-mode 1)
+              
+              ;; 3. Disable eldoc-box hover-at-point mode
+              (eldoc-box-hover-at-point-mode -1)))
+
+      ;; Find the goal buffer mode name first
+      ;; It's likely lean4-info-mode or similar
+      (add-hook 'lean4-info-mode-hook
+    	    (lambda ()
+    		(eldoc-box-hover-mode 1)
+    		(eldoc-box-hover-at-point-mode -1)))
+
+    ;; For goal buffer - only apply to Lean-related magit-section buffers
+      (add-hook 'magit-section-mode-hook
+    		(lambda ()
+    		    ;; Only configure if this is a Lean buffer
+    		    (when (string-match-p "\\*Lean" (buffer-name))
+    		    (eldoc-box-mouse-mode 1)
+    		    (eldoc-box-hover-at-point-mode -1))))
+
+
+  ;; (use-package flycheck-eglot
+  ;;   :ensure t
+  ;;   :after (flycheck eglot)
+  ;;   :config
+  ;;   (global-flycheck-eglot-mode 1))
+    
 #+end_src
 
 #+RESULTS:
-| (lambda nil (set (make-local-variable 'company-backends) '((company-my-lean-symbols company-dabbrev company-dabbrev-code company-files company-capf company-keywords company-semantic company-clang))) (set (make-local-variable 'company-minimum-prefix-length) 1)) | my-lean-key-chord-fix | lsp | (closure (t) nil (setq-local company-backends '((company-my-lean-symbols company-dabbrev company-dabbrev-code company-files company-capf company-keywords company-semantic company-clang))) (setq-local company-minimum-prefix-length 1)) |
+: eldoc-icebox-toggle-display
 
 ** Documentation
 We will use helm together with helm-dash to view documentation in
@@ -997,10 +1096,6 @@ emacs.
 #+begin_src emacs-lisp
   (setq helm-dash-common-docsets '("Python 2" "Haskell" "Sage" "Emacs Lisp"))
 #+end_src
-
-#+RESULTS:
-| Python 2 | Haskell | Sage | Emacs Lisp |
-
 
 We will display the documentation in the eww web-browser in emacs.
 
@@ -1023,10 +1118,6 @@ possible otherwise split vertically.
 	display-buffer-alist)
 #+end_src
 
-#+RESULTS:
-| \*eww\* | (eww-display+) |
-| \*eww\* | (eww-display+) |
-
 ** Completions
 *** Yasnippet
 #+begin_src emacs-lisp
@@ -1044,8 +1135,6 @@ possible otherwise split vertically.
   (use-package yasnippet-snippets
     :ensure t)
 #+end_src
-
-#+RESULTS:
 
 *** Hippie Expand
 #+begin_src emacs-lisp
@@ -1091,9 +1180,6 @@ possible otherwise split vertically.
 	  try-complete-lisp-symbol))
 #+end_src
 
-#+RESULTS:
-| try-expand-dabbrev | try-expand-dabbrev-all-buffers | try-expand-dabbrev-from-kill | try-complete-file-name-partially | try-complete-file-name | try-expand-all-abbrevs | try-expand-list | try-expand-line | try-complete-lisp-symbol-partially | try-complete-lisp-symbol |
-
 ** Writing
 *** Spell-check
 I use flyspell together with a nice [[https://emacs.stackexchange.com/questions/14909/how-to-use-flyspell-to-efficiently-correct-previous-word][function]] by Mark Karpov that
@@ -1133,8 +1219,6 @@ opens the suggestion in a pop-up menu.
   (use-package powerthesaurus)
 #+end_src
 
-#+RESULTS:
-
 *** Grammar-check
 #+begin_src emacs-lisp
   (use-package langtool
@@ -1142,9 +1226,6 @@ opens the suggestion in a pop-up menu.
     (setq langtool-java-bin "/usr/bin/java")
     (setq langtool-language-tool-jar "/Applications/LanguageTool/languagetool-commandline.jar"))
 #+end_src
-
-#+RESULTS:
-: t
 
 I wrote a package called [[https://github.com/cjl8zf/langtool-ignore-fonts][langtool-ignore-fonts]] that extends the
 langtool package to ignore specified fonts. I use this to ignore the
@@ -1156,8 +1237,6 @@ LaTeX markup when checking syntax.
   ;;   (add-hook 'markdown-mode-hook (lambda () 
   ;; 				  (setq-local langtool-ignore-fonts '(markdown-code-face)))))
 #+end_src
-
-#+RESULTS:
 
 ** Project Management
 #+begin_src emacs-lisp
@@ -1206,9 +1285,6 @@ LaTeX markup when checking syntax.
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
 #+end_src
 
-#+RESULTS:
-: t
-
 #+begin_src emacs-lisp
   (use-package skeletor
     :config
@@ -1232,9 +1308,6 @@ LaTeX markup when checking syntax.
       :title "c++-skeleton"
       :no-license? t))
 #+end_src
-
-#+RESULTS:
-: t
 
 ** Remote Work
 I have a laptop I use as a server for running
@@ -1264,9 +1337,6 @@ a file in Dropbox. These functions allow easy access to that computer.
       (buffer-string)))
 #+end_src
 
-#+RESULTS:
-: get-string-from-file
-
 ** Programming
 *** Syntax
 #+BEGIN_SRC emacs-lisp
@@ -1285,23 +1355,16 @@ a file in Dropbox. These functions allow easy access to that computer.
     (add-to-list 'flycheck-checkers 'proselint))
 #+END_SRC
 
-#+RESULTS:
-
 #+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent
   :config
   (global-aggressive-indent-mode 1))
 #+END_SRC
 
-#+RESULTS:
-: t
-
 *** Ctags
 #+BEGIN_SRC emacs-lisp
   (use-package ctags-update)
 #+END_SRC
-
-#+RESULTS:
 
 *** Company
 #+BEGIN_SRC emacs-lisp
@@ -1313,9 +1376,20 @@ a file in Dropbox. These functions allow easy access to that computer.
 
   (use-package company-box
     :hook (company-mode . company-box-mode))
+
+  ;; (use-package company-prescient
+  ;; 	:after company
+  ;; 	:config
+  ;; 	(company-prescient-mode 1))
+  ;; (use-package company-statistics
+  ;; :init
+  ;; (company-statistics-mode)
+  ;; :config
+  ;; (setq company-statistics-file (expand-file-name "company-statistics-cache.el" user-emacs-directory)))
 #+END_SRC
 
 *** Language Server Protocol
+
 
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
@@ -1330,8 +1404,6 @@ a file in Dropbox. These functions allow easy access to that computer.
   (use-package lsp-ui)
 #+END_SRC
 
-#+RESULTS:
-
 ** Telemetry
 #+begin_src emacs-lisp
   (use-package interaction-log)
@@ -1341,8 +1413,6 @@ a file in Dropbox. These functions allow easy access to that computer.
     (keyfreq-mode 1)
     (keyfreq-autosave-mode 1))
 #+end_src
-
-#+RESULTS:
 
 *** Keybindings
 #+begin_src emacs-lisp
@@ -1355,8 +1425,6 @@ a file in Dropbox. These functions allow easy access to that computer.
    :keymaps 'mu4e-view-mode-map
    "g" 'ace-link-mu4e)
 #+end_src
-
-#+RESULTS:
 
 ** Theme
 Here we change the basic look and feel. 
@@ -1442,6 +1510,3 @@ Here we change the basic look and feel.
   :config
   (minions-mode 1))
 #+end_src
-
-#+RESULTS:
-: t
