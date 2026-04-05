@@ -1,0 +1,198 @@
+#+PROPERTY: header-args :results none
+
+* Lean Config 
+** Base Packages
+We are using a fork of a fork ("ultronozm/lean4-mode") of a fork
+("bustercopley/lean4-mode:eglot") of "leanprover-community/lean4-mode".
+
+We are using this fork for the two features:
+- Hover docs in info mode
+- Flymake warning buffer `flymake-show-buffer-diagnostics`
+
+This uses eglot instead of lsp-mode.
+
+#+BEGIN_SRC emacs-lisp
+  (setq straight-built-in-pseudo-packages '(emacs xref nadvice python image-mode project flymake))
+
+  (use-package lean4-mode
+    :commands lean4-mode
+    :straight (lean4-mode :type git :host github
+  			;; :repo "ultronozm/lean4-mode"
+  	             	  :branch "copilot/fix-truncated-flymake-messages"	
+  			;; :branch "copilot/add-double-checkmark-lean4-mode"	
+  			:repo "ghseeli/lean4-mode"		
+  			:files ("*.el" "data"))
+    :config
+    (setq lean4-info-plain nil))
+
+#+END_SRC
+
+We use eldoc-box for the hover docs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package eldoc-box
+    :config
+    (eldoc-box-hover-at-point-mode 1))
+  (add-hook 'lean4-mode-hook #'eldoc-box-hover-at-point-mode)
+#+END_SRC
+
+** Keybindings
+
+Using `evil-mode` vim-style key bindings.
+
+#+begin_src emacs-lisp
+  (my-leader-def 'lean4-mode-map
+    "l c" 'lean-toggle-check
+    "l e" 'lean-toggle-eval
+    "l l" 'lean4-toggle-info
+    "?" 'lsp-ui-doc-mode)
+#+end_src
+
+**** `jk` normal mode fix 
+
+Lean4-mode uses quail to replace LaTeX-like symbols \alpha with the
+unicode equivalents. This interferes with key-chored mode which also
+uses quail under the hood. This function adds jk directly to the quail
+map in lean4-mode so that jk keeps working. 
+
+#+begin_src emacs-lisp :lexical t 
+  (defun quail-jk (key idx) 
+    (let ((curpos (point)))
+      (quail-delete-region)
+      (evil-normal-state)
+      (run-at-time 0.0002 nil (lambda () (goto-char (- curpos (if (bolp) 1 2)))))
+      (throw 'quail-tag nil)))
+
+  (defun my-ensure-key-chord-wins ()
+    "Force key-chord to be the primary input-method-function."
+    (when (derived-mode-p 'lean4-mode)
+      (setq-local input-method-function #'key-chord-input-method)))
+
+  (defun my-lean-key-chord-fix ()
+    "Force key-chord to take over input-method-function in Lean."
+    ;; We use a tiny delay to ensure Lean's own input-method setup is finished
+    (run-with-idle-timer 0.1 nil
+  		       (lambda ()
+  			 (add-hook 'post-command-hook #'my-ensure-key-chord-wins nil t)
+  			 (when (derived-mode-p 'lean4-mode)
+  			   (key-chord-mode -1) ; Toggle off
+  			   (key-chord-mode 1)))))
+
+  (add-hook 'lean4-mode-hook #'my-lean-key-chord-fix)
+#+end_src
+
+
+** Symbol Completion
+
+We create a custom company-mode backend for lean symbol completion. 
+
+#+begin_src emacs-lisp :lexical t 
+  (add-hook 'lean4-mode-hook
+            (lambda ()
+              (setq-local yas-fallback-behavior 'return-nil)
+              (add-hook 'post-self-insert-hook
+  		      (lambda ()
+  			;; If the character just typed is a "word" char or part of a symbol
+  			;; and it follows a backslash, try to expand.
+  			(when (and (bound-and-true-p yas-minor-mode)
+  				   (looking-back "\\\\[^ \t\n]+" (line-beginning-position)))
+  			  (yas-expand)))
+                        nil t)))
+
+  (setq eglot-stay-out-of '(company))
+
+  (use-package company-math)
+
+  (defun my-lean4-company-setup ()
+    "Set up company backends for Lean4 after mode initialization."
+    (setq-local company-backends
+                '(company-math-symbols-unicode
+    		company-keywords
+                  (company-capf company-dabbrev)))
+    (setq-local company-minimum-prefix-length 2))
+
+  ;; Apply AFTER lean4-mode sets up
+  (add-hook 'lean4-mode-hook #'my-lean4-company-setup)
+
+  ;; If that doesn't work, use advice to force it after eglot starts
+  (advice-add 'eglot-ensure :after
+              (lambda (&rest _)
+                (when (derived-mode-p 'lean4-mode)
+                  (my-lean4-company-setup))))
+
+  (use-package czm-lean4
+    :straight (czm-lean4 :type git :host github
+        		       :repo "ultronozm/czm-lean4.el"))
+
+  (add-hook 'lean4-mode-hook
+        	  (lambda ()
+    	    (advice-add 'lean4-info-buffer-redisplay :around #'czm-lean4-info-buffer-redisplay)
+    	    (advice-add 'lean4-info-buffer-redisplay :after #'czm-lean4--goal-overlay-update-adapter)))
+
+  (defun czm-add-lean4-eldoc ()
+    (when (with-current-buffer eldoc-icebox-parent-buffer
+            (or (eq major-mode 'lean4-mode)
+                (equal (buffer-name)
+                       "*Lean Goal*")))
+      (add-hook 'eldoc-documentation-functions #'lean4-info-eldoc-function
+                nil t)
+      (eldoc-mode)))
+
+  (use-package eldoc-icebox
+    :straight (:host github :repo "ultronozm/eldoc-icebox.el" :depth nil)
+    :bind (("C-c C-h" . eldoc-icebox-store)
+           ("C-c C-n" . eldoc-icebox-toggle-display))
+    :hook
+    (eldoc-icebox-post-display . shrink-window-if-larger-than-buffer)
+    (eldoc-icebox-post-display . czm-lean4-fontify-buffer)
+    (eldoc-icebox-post-display . czm-add-lean4-eldoc))
+
+
+  (with-eval-after-load 'lean4-mode
+    (defun lean4-indent-line ()
+      "Lean 4 indent line function.
+  If point is at the end of the current indentation, use `lean4-eri-indent';
+  or if point is before that position, move it there; or do nothing, to allow
+  tab completion (if configured)."
+      (let ((cur-column (current-column))
+            (cur-indent (current-indentation)))
+        (cond 
+         ;; New blank line: use previous line's indent
+         ((and (= cur-column 0) 
+               (= cur-indent 0)
+               (looking-at "^[[:space:]]*$"))
+  	(let ((prev-indent (save-excursion
+                               (forward-line -1)
+                               (current-indentation))))
+            (when (> prev-indent 0)
+              (indent-line-to prev-indent))))
+         
+         ((= cur-column cur-indent)
+  	(lean4-eri-indent))
+         ((< cur-column cur-indent)
+  	(move-to-column cur-indent))))))
+
+  (add-hook 'lean4-mode-hook
+            (lambda ()
+              ;; 1. Disable aggressive-indent-mode
+              (aggressive-indent-mode -1)
+              
+              ;; 2. Enable eldoc-box hover (mouse) mode
+              (eldoc-box-hover-mode 1)
+              
+              ;; 3. Disable eldoc-box hover-at-point mode
+              (eldoc-box-hover-at-point-mode -1)))
+
+  (add-hook 'lean4-info-mode-hook
+  	  (lambda ()
+  	    (eldoc-box-hover-mode 1)
+  	    (eldoc-box-hover-at-point-mode -1)))
+
+  ;; For goal buffer - only apply to Lean-related magit-section buffers
+  (add-hook 'magit-section-mode-hook
+  	  (lambda ()
+  	    ;; Only configure if this is a Lean buffer
+  	    (when (string-match-p "\\*Lean" (buffer-name))
+  	      (eldoc-box-mouse-mode 1)
+  	      (eldoc-box-hover-at-point-mode -1))))
+#+end_src
