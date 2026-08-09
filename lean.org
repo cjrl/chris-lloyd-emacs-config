@@ -35,6 +35,41 @@ We use eldoc-box for the hover docs.
     (eldoc-box-hover-at-point-mode 1))
   (add-hook 'lean4-mode-hook #'eldoc-box-hover-at-point-mode)
 #+END_SRC
+** Custom Commands
+
+#+begin_src emacs-lisp
+(defun mathlib4-run-ci-checks ()
+  "Run lake build, style checks, and environment linters for the current Lean file, 
+displaying results in a bottom-docked compilation buffer."
+  (interactive)
+  (unless (buffer-file-name)
+    (error "This buffer is not visiting a file!"))
+  
+  (let* ((filepath (buffer-file-name))
+         (raw-root (locate-dominating-file filepath "lakefile.lean"))
+         
+         (_ (unless raw-root 
+              (error "Could not find lakefile.lean in any parent directory!")))
+              
+         (project-root (expand-file-name raw-root))
+         (rel-path (file-relative-name filepath project-root))
+         
+         (module (replace-regexp-in-string 
+                  "/" "." 
+                  (file-name-sans-extension rel-path)))
+         
+         (cmd (format "cd %s && lake build && lake exe lint-style && lake exe runLinter %s"
+                      (shell-quote-argument project-root)
+                      (shell-quote-argument module))))
+    
+    (let ((display-buffer-alist
+           '(("\\*compilation\\*"
+              (display-buffer-reuse-window display-buffer-at-bottom)
+              (window-height . 0.3)))))
+      
+      ;; Run the command
+      (compile cmd))))
+#+end_src
 
 ** Keybindings
 
@@ -45,6 +80,7 @@ Using `evil-mode` vim-style key bindings.
     "l c" 'lean-toggle-check
     "l e" 'lean-toggle-eval
     "l l" 'lean4-toggle-info
+    "c" 'mathlib4-run-ci-checks
     "?" 'lsp-ui-doc-mode)
 #+end_src
 
