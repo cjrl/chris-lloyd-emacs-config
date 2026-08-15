@@ -71,6 +71,21 @@ displaying results in a bottom-docked compilation buffer."
       (compile cmd))))
 #+end_src
 
+#+begin_src emacs-lisp
+(defun lean-refresh-mathlib ()
+  "Kill running Lean processes and fetch the latest mathlib cache for the current project."
+  (interactive)
+  (let* ((root (or (locate-dominating-file default-directory "lakefile.lean")
+                   (locate-dominating-file default-directory "lean-toolchain")
+                   default-directory))
+         (default-directory root))
+    (message "Stopping Lean processes...")
+    (shell-command "killall lean")
+    
+    (message "Fetching mathlib cache in project root: %s" root)
+    (async-shell-command "lake exe cache get" "*lean-cache-get*")))
+#+end_src
+
 ** Keybindings
 
 Using `evil-mode` vim-style key bindings.
@@ -80,6 +95,7 @@ Using `evil-mode` vim-style key bindings.
     "l c" 'lean-toggle-check
     "l e" 'lean-toggle-eval
     "l l" 'lean4-toggle-info
+    "l r" 'lean-refresh-mathlib
     "c" 'mathlib4-run-ci-checks
     "?" 'lsp-ui-doc-mode)
 #+end_src
